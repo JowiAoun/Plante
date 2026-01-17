@@ -65,6 +65,7 @@ export interface Notification {
   ts: string;
   read: boolean;
   link?: string;
+  senderAvatarSeed?: string;
 }
 
 // Exhibit image

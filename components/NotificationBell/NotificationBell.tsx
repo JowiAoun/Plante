@@ -8,6 +8,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import type { Notification } from '@/types';
 import { AchievementModal } from '@/components/AchievementModal';
+import { ActionButton } from '@/components/ActionButton';
+import { Toast, ToastContainer } from '@/components/Toast';
+import { PixelAvatar } from '@/components/PixelAvatar';
 import './NotificationBell.css';
 
 import { useRouter } from 'next/navigation';
@@ -164,9 +167,20 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
                     onClick={() => handleItemClick(notification)}
                     style={{ borderLeftColor: severityColors[notification.severity] }}
                   >
-                    <span className="notification-bell__item-icon">
-                      {typeIcons[notification.type]}
-                    </span>
+                    <div className="notification-bell__item-icon-container">
+                      {notification.senderAvatarSeed ? (
+                        <PixelAvatar 
+                          username="user" 
+                          seed={notification.senderAvatarSeed} 
+                          size="small" 
+                          className="notification-bell__item-avatar"
+                        />
+                      ) : (
+                        <span className="notification-bell__item-icon">
+                          {typeIcons[notification.type]}
+                        </span>
+                      )}
+                    </div>
                     <div className="notification-bell__item-content">
                       <p className="notification-bell__item-message">
                         {notification.message}

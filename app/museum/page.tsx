@@ -6,7 +6,7 @@ import { mockNotifications, mockUsers } from '@/mocks/data'
 const Museum = () => (
   <div>
     <h1 style={{ fontFamily: 'var(--font-game)', fontSize: '20px', color: 'var(--color-accent)', marginBottom: '16px' }}>
-      🏛️ Museum
+      Museum
     </h1>
     <p style={{ color: 'var(--color-text-muted)' }}>
       Your plant collection and exhibits will appear here.

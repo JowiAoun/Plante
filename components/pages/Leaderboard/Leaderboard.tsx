@@ -26,7 +26,7 @@ export const Leaderboard: React.FC = () => {
   return (
     <div className="leaderboard">
       <header className="leaderboard__header">
-        <h1 className="leaderboard__title">🏆 Leaderboard</h1>
+        <h1 className="leaderboard__title">Leaderboard</h1>
         <p className="leaderboard__subtitle">Top farmers this season</p>
       </header>
 

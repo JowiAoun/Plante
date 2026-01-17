@@ -97,7 +97,11 @@
 }
 
 /* Avatar */
-/* Obsolete generic avatar styles removed */
+@media (max-width: 480px) {
+  .top-bar__actions .user-profile__info {
+    display: none;
+  }
+}
 
 /* Login button */
 .top-bar__login {

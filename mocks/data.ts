@@ -172,6 +172,7 @@ export const mockNotifications: Notification[] = [
     ts: new Date(Date.now() - 7200000).toISOString(),
     read: true,
     link: '/user/3c9e1b',
+    senderAvatarSeed: 'pam2024',
   },
   {
     id: 'notif-004',
