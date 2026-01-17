@@ -11,8 +11,10 @@
   background-color: var(--color-surface);
 }
 
+/* Hover state interactions - preserve border color */
 .farm-card:hover {
   transform: translateY(-4px);
+  /* Ensure border color comes from status class */
 }
 
 .farm-card:focus-visible {
@@ -20,6 +22,7 @@
   outline-offset: 2px;
 }
 
+.farm-card--selected:hover,
 .farm-card--selected {
   border-color: var(--color-accent) !important;
   box-shadow: 0 0 0 4px var(--color-accent);
@@ -36,12 +39,13 @@
 
 .farm-card.status-critical {
   border-color: var(--color-critical);
-  animation: pulse-critical 1s steps(2) infinite;
+  animation: pulse-border 1.5s infinite;
+  box-shadow: 0 0 8px var(--color-critical);
 }
 
-@keyframes pulse-critical {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.8; }
+@keyframes pulse-border {
+  0%, 100% { border-color: var(--color-critical); }
+  50% { border-color: var(--color-red); }
 }
 
 /* Thumbnail */
