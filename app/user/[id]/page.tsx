@@ -11,7 +11,7 @@ interface UserPageProps {
 
 import { AppShell } from '@/components/AppShell'
 import { mockNotifications } from '@/mocks/data'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 interface UserPageProps {
   params: Promise<{ id: string }>
@@ -20,8 +20,19 @@ interface UserPageProps {
 export default function UserPage({ params }: UserPageProps) {
   const { id } = use(params)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const user = mockUsers.find(u => u.id === id)
   const currentUser = mockUsers[0] // Mock logged in user
+
+  // Determine back link and label
+  const fromPage = searchParams.get('from')
+  let backLink = '/dashboard'
+  let backLabel = 'Back to Dashboard'
+
+  if (fromPage === 'leaderboard') {
+    backLink = '/leaderboard'
+    backLabel = 'Back to Leaderboard'
+  }
 
   // Handle navigation from sidebar (redirect to dashboard with query param or just root)
   const handleNavigate = (page: string) => {
@@ -71,7 +82,7 @@ export default function UserPage({ params }: UserPageProps) {
     >
       <div className="user-profile-page" style={{ padding: '20px' }}>
          <div style={{ maxWidth: '600px', margin: '0 auto 20px auto' }}>
-            <Link href="/" style={{ 
+            <Link href={backLink} style={{ 
               fontFamily: 'var(--font-game)', 
               color: 'var(--color-text-muted)', 
               textDecoration: 'none',
@@ -79,7 +90,7 @@ export default function UserPage({ params }: UserPageProps) {
               display: 'inline-block',
               padding: '8px'
             }}>
-              ← Back to Dashboard
+              ← {backLabel}
             </Link>
          </div>
          <Profile user={user} isOwnProfile={false} />

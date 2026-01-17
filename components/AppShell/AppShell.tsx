@@ -8,9 +8,9 @@
 import React, { useState } from 'react';
 import type { User, Notification } from '@/types';
 import { TopBar } from '@/components/TopBar';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import './AppShell.css';
-
-export type Page = 'dashboard' | 'profile' | 'museum' | 'leaderboard' | 'settings';
 
 export interface AppShellProps {
   /** Main content */
@@ -21,10 +21,9 @@ export interface AppShellProps {
   notifications?: Notification[];
   /** Theme variant */
   theme?: 'default' | 'spring' | 'night' | 'neon';
-  /** Current active page */
-  currentPage?: Page;
-  /** Page navigation callback */
-  onNavigate?: (page: Page) => void;
+  // currentPage and onNavigate are deprecated in favor of App Router
+  currentPage?: string; // Kept for backward compat if needed, but unused
+  onNavigate?: (page: any) => void;
 }
 
 /**
@@ -35,23 +34,26 @@ export const AppShell: React.FC<AppShellProps> = ({
   user,
   notifications = [],
   theme = 'default',
-  currentPage = 'dashboard',
-  onNavigate,
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
 
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, page: Page) => {
-    e.preventDefault();
-    onNavigate?.(page);
-    setSidebarOpen(false); // Close sidebar on mobile after navigation
+  // Helper to determine if link is active
+  const isActive = (path: string) => {
+    // Exact match for root or dashboard
+    if (path === '/dashboard' && (pathname === '/' || pathname === '/dashboard')) return true;
+    // Starts with path for others (e.g. /leaderboard matches /leaderboard/subpage)
+    if (path !== '/' && pathname?.startsWith(path)) return true;
+    return false;
   };
 
-  const navItems: { page: Page; icon: string; label: string }[] = [
-    { page: 'dashboard', icon: '🏠', label: 'Dashboard' },
-    { page: 'profile', icon: '👤', label: 'Profile' },
-    { page: 'museum', icon: '🏛️', label: 'Museum' },
-    { page: 'leaderboard', icon: '🏆', label: 'Leaderboard' },
-    { page: 'settings', icon: '⚙️', label: 'Settings' },
+  const navItems = [
+    { path: '/dashboard', icon: '🏠', label: 'Dashboard' },
+    { path: '/profile', icon: '👤', label: 'Profile' },
+    { path: '/museum', icon: '🏛️', label: 'Museum' },
+    { path: '/leaderboard', icon: '🏆', label: 'Leaderboard' },
+    { path: '/settings', icon: '⚙️', label: 'Settings' },
   ];
 
   return (
@@ -66,7 +68,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         user={user}
         notifications={notifications}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-        onAvatarClick={() => onNavigate?.('profile')}
+        onAvatarClick={() => router.push('/profile')}
       />
 
       {/* Main layout area */}
@@ -76,33 +78,33 @@ export const AppShell: React.FC<AppShellProps> = ({
           className={`app-shell__sidebar ${sidebarOpen ? 'app-shell__sidebar--open' : ''}`}
         >
           <nav className="app-shell__sidebar-nav" aria-label="Main navigation">
-            {navItems.filter(item => item.page !== 'settings' && item.page !== 'profile').map(({ page, icon, label }) => (
-              <a
-                key={page}
-                href={`#${page}`}
-                className={`app-shell__sidebar-link ${currentPage === page ? 'app-shell__sidebar-link--active' : ''}`}
-                onClick={(e) => handleNavClick(e, page)}
-                aria-current={currentPage === page ? 'page' : undefined}
+            {navItems.filter(item => item.path !== '/settings' && item.path !== '/profile').map(({ path, icon, label }) => (
+              <Link
+                key={path}
+                href={path}
+                className={`app-shell__sidebar-link ${isActive(path) ? 'app-shell__sidebar-link--active' : ''}`}
+                onClick={() => setSidebarOpen(false)}
+                aria-current={isActive(path) ? 'page' : undefined}
               >
                 <span className="app-shell__sidebar-icon">{icon}</span>
                 <span className="app-shell__sidebar-label">{label}</span>
-              </a>
+              </Link>
             ))}
           </nav>
 
           {/* Bottom navigation (Settings) */}
           <nav className="app-shell__sidebar-nav app-shell__sidebar-nav--bottom" aria-label="Secondary navigation">
-            {navItems.filter(item => item.page === 'settings').map(({ page, icon, label }) => (
-              <a
-                key={page}
-                href={`#${page}`}
-                className={`app-shell__sidebar-link ${currentPage === page ? 'app-shell__sidebar-link--active' : ''}`}
-                onClick={(e) => handleNavClick(e, page)}
-                aria-current={currentPage === page ? 'page' : undefined}
+            {navItems.filter(item => item.path === '/settings').map(({ path, icon, label }) => (
+              <Link
+                key={path}
+                href={path}
+                className={`app-shell__sidebar-link ${isActive(path) ? 'app-shell__sidebar-link--active' : ''}`}
+                onClick={() => setSidebarOpen(false)}
+                aria-current={isActive(path) ? 'page' : undefined}
               >
                 <span className="app-shell__sidebar-icon">{icon}</span>
                 <span className="app-shell__sidebar-label">{label}</span>
-              </a>
+              </Link>
             ))}
           </nav>
         </aside>

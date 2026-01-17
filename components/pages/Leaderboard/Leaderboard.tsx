@@ -20,7 +20,7 @@ export const Leaderboard: React.FC = () => {
   const topThree = rankedUsers.slice(0, 3);
 
   const handleRowClick = (userId: string) => {
-    router.push(`/user/${userId}`);
+    router.push(`/user/${userId}?from=leaderboard`);
   };
 
   return (
@@ -34,7 +34,7 @@ export const Leaderboard: React.FC = () => {
       <div className="leaderboard__podium">
         {/* Second place */}
         <div className="leaderboard__podium-spot leaderboard__podium-spot--2">
-          <Link href={`/user/${topThree[1]?.id}`} className="leaderboard__link">
+          <Link href={`/user/${topThree[1]?.id}?from=leaderboard`} className="leaderboard__link">
             <div className="leaderboard__podium-avatar leaderboard__podium-avatar--silver">
                <PixelAvatar username={topThree[1]?.username} seed={topThree[1]?.avatarSeed} size="medium" />
             </div>
@@ -47,7 +47,7 @@ export const Leaderboard: React.FC = () => {
         {/* First place */}
         <div className="leaderboard__podium-spot leaderboard__podium-spot--1">
           <span className="leaderboard__crown">👑</span>
-          <Link href={`/user/${topThree[0]?.id}`} className="leaderboard__link">
+          <Link href={`/user/${topThree[0]?.id}?from=leaderboard`} className="leaderboard__link">
             <div className="leaderboard__podium-avatar leaderboard__podium-avatar--gold">
                <PixelAvatar username={topThree[0]?.username} seed={topThree[0]?.avatarSeed} size="medium" />
             </div>
@@ -59,7 +59,7 @@ export const Leaderboard: React.FC = () => {
 
         {/* Third place */}
         <div className="leaderboard__podium-spot leaderboard__podium-spot--3">
-          <Link href={`/user/${topThree[2]?.id}`} className="leaderboard__link">
+          <Link href={`/user/${topThree[2]?.id}?from=leaderboard`} className="leaderboard__link">
             <div className="leaderboard__podium-avatar leaderboard__podium-avatar--bronze">
                <PixelAvatar username={topThree[2]?.username} seed={topThree[2]?.avatarSeed} size="medium" />
             </div>
