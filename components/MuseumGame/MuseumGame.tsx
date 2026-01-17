@@ -5,13 +5,14 @@
  * Interactive pixel-art museum where players explore their achievements
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { PixelAvatar } from '@/components/PixelAvatar';
+import { Joystick, type JoystickOutput } from '@/components/Joystick';
 import { mockAchievements } from '@/mocks/data';
 import { achievementIcons, rarityColors } from '@/data/achievements';
 import type { Achievement } from '@/types';
 import { useGameLoop } from './useGameLoop';
-import type { MuseumLayout, AchievementPedestal, Direction } from './types';
+import type { MuseumLayout, AchievementPedestal } from './types';
 import './MuseumGame.css';
 
 export interface MuseumGameProps {
@@ -24,6 +25,10 @@ export interface MuseumGameProps {
   /** Owner name (for viewing other users' museums) */
   ownerName?: string;
 }
+
+// Game dimensions
+const GAME_WIDTH = 768;
+const GAME_HEIGHT = 480;
 
 // Museum layout configuration
 const createMuseumLayout = (achievements: Achievement[], userId: string): MuseumLayout => {
@@ -69,6 +74,15 @@ export const MuseumGame: React.FC<MuseumGameProps> = ({
   ownerName,
 }) => {
   const [activeAchievementId, setActiveAchievementId] = useState<string | null>(null);
+  const [viewportWidth, setViewportWidth] = useState(GAME_WIDTH); // Default to full width for SSR
+
+  // Update viewport width on client
+  useEffect(() => {
+    const updateWidth = () => setViewportWidth(Math.min(window.innerWidth, GAME_WIDTH));
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
 
   const layout = useMemo(
     () => createMuseumLayout(achievements, userId),
@@ -86,19 +100,39 @@ export const MuseumGame: React.FC<MuseumGameProps> = ({
     return achievements.find((a) => a.id === activeAchievementId) || null;
   }, [activeAchievementId, achievements]);
 
-  const handleTouchStart = useCallback((direction: Direction) => {
+  // Joystick handlers
+  const handleJoystickMove = useCallback((output: JoystickOutput) => {
     const container = gameContainerRef.current;
-    if (container && 'setTouchInput' in container) {
-      (container as unknown as { setTouchInput: (d: Direction, p: boolean) => void }).setTouchInput(direction, true);
+    if (container && 'setJoystickInput' in container) {
+      (container as unknown as { setJoystickInput: (x: number, y: number, m: number) => void })
+        .setJoystickInput(output.x, output.y, output.magnitude);
     }
   }, [gameContainerRef]);
 
-  const handleTouchEnd = useCallback((direction: Direction) => {
+  const handleJoystickStop = useCallback(() => {
     const container = gameContainerRef.current;
-    if (container && 'setTouchInput' in container) {
-      (container as unknown as { setTouchInput: (d: Direction, p: boolean) => void }).setTouchInput(direction, false);
+    if (container && 'setJoystickInput' in container) {
+      (container as unknown as { setJoystickInput: (x: number, y: number, m: number) => void })
+        .setJoystickInput(0, 0, 0);
     }
   }, [gameContainerRef]);
+
+  // Calculate camera offset for mobile (center on player)
+  const cameraOffset = useMemo(() => {
+    const playerX = gameState.player.position.x;
+    const playerY = gameState.player.position.y;
+    const viewportHeight = 280;
+    
+    // Center the viewport on the player
+    let offsetX = viewportWidth / 2 - playerX;
+    let offsetY = viewportHeight / 2 - playerY;
+    
+    // Clamp to prevent showing outside game bounds
+    offsetX = Math.min(0, Math.max(offsetX, viewportWidth - GAME_WIDTH));
+    offsetY = Math.min(0, Math.max(offsetY, viewportHeight - GAME_HEIGHT));
+    
+    return { x: offsetX, y: offsetY };
+  }, [gameState.player.position, viewportWidth]);
 
   return (
     <div className="museum-game">
@@ -132,106 +166,88 @@ export const MuseumGame: React.FC<MuseumGameProps> = ({
         role="application"
         aria-label="Museum exploration game. Use arrow keys or WASD to move."
       >
-        {/* Background */}
-        <div className="museum-game__background" />
-
-        {/* Achievement Pedestals */}
-        {layout.pedestals.map((pedestal) => {
-          const achievement = achievements.find((a) => a.id === pedestal.achievementId);
-          if (!achievement) return null;
-
-          const icon = achievementIcons[achievement.icon as keyof typeof achievementIcons] || '🏆';
-          const rarityColor = rarityColors[achievement.rarity];
-          const isActive = activeAchievementId === pedestal.achievementId;
-
-          return (
-            <div
-              key={pedestal.id}
-              className={`museum-game__pedestal ${pedestal.unlocked ? 'museum-game__pedestal--unlocked' : 'museum-game__pedestal--locked'} ${isActive ? 'museum-game__pedestal--active' : ''}`}
-              style={{
-                left: pedestal.position.x,
-                top: pedestal.position.y,
-                '--rarity-color': rarityColor,
-              } as React.CSSProperties}
-            >
-              <div className="museum-game__pedestal-icon">
-                {pedestal.unlocked ? icon : '🔒'}
-              </div>
-              <div className="museum-game__pedestal-base" />
-            </div>
-          );
-        })}
-
-        {/* Player */}
-        <div
-          className={`museum-game__player ${gameState.player.isMoving ? 'museum-game__player--moving' : ''}`}
+        {/* Camera wrapper for mobile */}
+        <div 
+          className="museum-game__camera"
           style={{
-            left: gameState.player.position.x - gameState.player.size.width / 2,
-            top: gameState.player.position.y - gameState.player.size.height / 2,
-          }}
+            '--camera-x': `${cameraOffset.x}px`,
+            '--camera-y': `${cameraOffset.y}px`,
+          } as React.CSSProperties}
         >
-          <div className="museum-game__player-avatar">
-            <PixelAvatar
-              username={avatarSeed}
-              seed={avatarSeed}
-              size="medium"
-            />
+          {/* Background */}
+          <div className="museum-game__background" />
+
+          {/* Achievement Pedestals */}
+          {layout.pedestals.map((pedestal) => {
+            const achievement = achievements.find((a) => a.id === pedestal.achievementId);
+            if (!achievement) return null;
+
+            const icon = achievementIcons[achievement.icon as keyof typeof achievementIcons] || '🏆';
+            const rarityColor = rarityColors[achievement.rarity];
+            const isActive = activeAchievementId === pedestal.achievementId;
+
+            return (
+              <div
+                key={pedestal.id}
+                className={`museum-game__pedestal ${pedestal.unlocked ? 'museum-game__pedestal--unlocked' : 'museum-game__pedestal--locked'} ${isActive ? 'museum-game__pedestal--active' : ''}`}
+                style={{
+                  left: pedestal.position.x,
+                  top: pedestal.position.y,
+                  '--rarity-color': rarityColor,
+                } as React.CSSProperties}
+              >
+                <div className="museum-game__pedestal-icon">
+                  {pedestal.unlocked ? icon : '🔒'}
+                </div>
+                <div className="museum-game__pedestal-base" />
+              </div>
+            );
+          })}
+
+          {/* Player */}
+          <div
+            className={`museum-game__player ${gameState.player.isMoving ? 'museum-game__player--moving' : ''}`}
+            style={{
+              left: gameState.player.position.x - gameState.player.size.width / 2,
+              top: gameState.player.position.y - gameState.player.size.height / 2,
+            }}
+          >
+            <div className="museum-game__player-avatar">
+              <PixelAvatar
+                username={avatarSeed}
+                seed={avatarSeed}
+                size="medium"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Achievement Popup */}
-        {activeAchievement && (
-          <div className="museum-game__popup">
-            <h3 className="museum-game__popup-title">{activeAchievement.title}</h3>
-            <p
-              className="museum-game__popup-rarity"
-              style={{ color: rarityColors[activeAchievement.rarity] }}
-            >
-              {activeAchievement.rarity}
-            </p>
-            <p className="museum-game__popup-desc">{activeAchievement.description}</p>
-            {!layout.pedestals.find((p) => p.achievementId === activeAchievement.id)?.unlocked && (
-              <p className="museum-game__popup-locked">🔒 Not yet unlocked</p>
-            )}
-          </div>
-        )}
-
-        {/* Mobile D-pad */}
-        <div className="museum-game__dpad">
-          <button
-            className="museum-game__dpad-btn museum-game__dpad-btn--up"
-            onTouchStart={() => handleTouchStart('up')}
-            onTouchEnd={() => handleTouchEnd('up')}
-            onMouseDown={() => handleTouchStart('up')}
-            onMouseUp={() => handleTouchEnd('up')}
-            aria-label="Move up"
-          >▲</button>
-          <button
-            className="museum-game__dpad-btn museum-game__dpad-btn--down"
-            onTouchStart={() => handleTouchStart('down')}
-            onTouchEnd={() => handleTouchEnd('down')}
-            onMouseDown={() => handleTouchStart('down')}
-            onMouseUp={() => handleTouchEnd('down')}
-            aria-label="Move down"
-          >▼</button>
-          <button
-            className="museum-game__dpad-btn museum-game__dpad-btn--left"
-            onTouchStart={() => handleTouchStart('left')}
-            onTouchEnd={() => handleTouchEnd('left')}
-            onMouseDown={() => handleTouchStart('left')}
-            onMouseUp={() => handleTouchEnd('left')}
-            aria-label="Move left"
-          >◀</button>
-          <button
-            className="museum-game__dpad-btn museum-game__dpad-btn--right"
-            onTouchStart={() => handleTouchStart('right')}
-            onTouchEnd={() => handleTouchEnd('right')}
-            onMouseDown={() => handleTouchStart('right')}
-            onMouseUp={() => handleTouchEnd('right')}
-            aria-label="Move right"
-          >▶</button>
+        {/* Mobile Joystick */}
+        <div className="museum-game__joystick">
+          <Joystick
+            onMove={handleJoystickMove}
+            onStop={handleJoystickStop}
+            size={100}
+          />
         </div>
       </div>
+
+      {/* Achievement popup - outside container for mobile */}
+      {activeAchievement && (
+        <div className="museum-game__popup">
+          <h3 className="museum-game__popup-title">{activeAchievement.title}</h3>
+          <p
+            className="museum-game__popup-rarity"
+            style={{ color: rarityColors[activeAchievement.rarity] }}
+          >
+            {activeAchievement.rarity}
+          </p>
+          <p className="museum-game__popup-desc">{activeAchievement.description}</p>
+          {!layout.pedestals.find((p) => p.achievementId === activeAchievement.id)?.unlocked && (
+            <p className="museum-game__popup-locked">🔒 Not yet unlocked</p>
+          )}
+        </div>
+      )}
 
       <div className="museum-game__instructions">
         Use <strong>WASD</strong> or <strong>Arrow keys</strong> to move • Walk near achievements to view details

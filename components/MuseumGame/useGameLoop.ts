@@ -6,8 +6,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Position, Direction, InputState, GameState, MuseumLayout, AchievementPedestal } from './types';
 
-const PLAYER_SPEED = 4; // pixels per frame
-const INTERACTION_DISTANCE = 48; // pixels
+const BASE_PLAYER_SPEED = 4;
+const MAX_PLAYER_SPEED = 6;
+const INTERACTION_DISTANCE = 48;
+
+interface JoystickInput {
+  x: number;
+  y: number;
+  magnitude: number;
+}
 
 interface UseGameLoopProps {
   layout: MuseumLayout;
@@ -80,6 +87,7 @@ export function useGameLoop({
 }: UseGameLoopProps): UseGameLoopReturn {
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<InputState>({ up: false, down: false, left: false, right: false });
+  const joystickRef = useRef<JoystickInput>({ x: 0, y: 0, magnitude: 0 });
   const animationFrameRef = useRef<number | null>(null);
   
   const [gameState, setGameState] = useState<GameState>({
@@ -163,10 +171,19 @@ export function useGameLoop({
         let newX = prev.player.position.x;
         let newY = prev.player.position.y;
 
-        if (input.up) newY -= PLAYER_SPEED;
-        if (input.down) newY += PLAYER_SPEED;
-        if (input.left) newX -= PLAYER_SPEED;
-        if (input.right) newX += PLAYER_SPEED;
+        const joystick = joystickRef.current;
+        const hasJoystickInput = joystick.magnitude > 0.1;
+        
+        if (hasJoystickInput) {
+          const speed = BASE_PLAYER_SPEED + (MAX_PLAYER_SPEED - BASE_PLAYER_SPEED) * joystick.magnitude;
+          newX += joystick.x * speed;
+          newY += joystick.y * speed;
+        } else {
+          if (input.up) newY -= BASE_PLAYER_SPEED;
+          if (input.down) newY += BASE_PLAYER_SPEED;
+          if (input.left) newX -= BASE_PLAYER_SPEED;
+          if (input.right) newX += BASE_PLAYER_SPEED;
+        }
 
         const newPosition = { x: newX, y: newY };
 
@@ -208,7 +225,6 @@ export function useGameLoop({
     };
   }, [layout, onAchievementInteract]);
 
-  // Set touch input from D-pad
   const setTouchInput = useCallback((direction: Direction, pressed: boolean) => {
     if (direction === 'up') inputRef.current.up = pressed;
     if (direction === 'down') inputRef.current.down = pressed;
@@ -216,14 +232,16 @@ export function useGameLoop({
     if (direction === 'right') inputRef.current.right = pressed;
   }, []);
 
-  // Attach touch handler to ref
+  const setJoystickInput = useCallback((x: number, y: number, magnitude: number) => {
+    joystickRef.current = { x, y, magnitude };
+  }, []);
+
   useEffect(() => {
     const container = gameContainerRef.current;
     if (!container) return;
-
-    // Store setTouchInput on the container for D-pad access
-    (container as unknown as { setTouchInput: typeof setTouchInput }).setTouchInput = setTouchInput;
-  }, [setTouchInput]);
+    (container as unknown as { setTouchInput: typeof setTouchInput; setJoystickInput: typeof setJoystickInput }).setTouchInput = setTouchInput;
+    (container as unknown as { setTouchInput: typeof setTouchInput; setJoystickInput: typeof setJoystickInput }).setJoystickInput = setJoystickInput;
+  }, [setTouchInput, setJoystickInput]);
 
   return {
     gameState,

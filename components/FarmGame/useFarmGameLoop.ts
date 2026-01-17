@@ -6,8 +6,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Position, Direction, InputState, FarmGameState, FarmLayout, FarmSpot } from './types';
 
-const PLAYER_SPEED = 4;
+const BASE_PLAYER_SPEED = 4;
+const MAX_PLAYER_SPEED = 6;
 const INTERACTION_DISTANCE = 60;
+
+interface JoystickInput {
+  x: number;  // -1 to 1
+  y: number;  // -1 to 1
+  magnitude: number;  // 0 to 1
+}
 
 interface UseFarmGameLoopProps {
   layout: FarmLayout;
@@ -70,6 +77,7 @@ export function useFarmGameLoop({
 }: UseFarmGameLoopProps): UseFarmGameLoopReturn {
   const gameContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<InputState>({ up: false, down: false, left: false, right: false });
+  const joystickRef = useRef<JoystickInput>({ x: 0, y: 0, magnitude: 0 });
   const animationFrameRef = useRef<number | null>(null);
   
   const [gameState, setGameState] = useState<FarmGameState>({
@@ -150,11 +158,22 @@ export function useFarmGameLoop({
       setGameState((prev) => {
         let newX = prev.player.position.x;
         let newY = prev.player.position.y;
-
-        if (input.up) newY -= PLAYER_SPEED;
-        if (input.down) newY += PLAYER_SPEED;
-        if (input.left) newX -= PLAYER_SPEED;
-        if (input.right) newX += PLAYER_SPEED;
+        
+        const joystick = joystickRef.current;
+        const hasJoystickInput = joystick.magnitude > 0.1;
+        
+        if (hasJoystickInput) {
+          // Variable speed based on joystick magnitude
+          const speed = BASE_PLAYER_SPEED + (MAX_PLAYER_SPEED - BASE_PLAYER_SPEED) * joystick.magnitude;
+          newX += joystick.x * speed;
+          newY += joystick.y * speed;
+        } else {
+          // D-pad/keyboard input
+          if (input.up) newY -= BASE_PLAYER_SPEED;
+          if (input.down) newY += BASE_PLAYER_SPEED;
+          if (input.left) newX -= BASE_PLAYER_SPEED;
+          if (input.right) newX += BASE_PLAYER_SPEED;
+        }
 
         const newPosition = { x: newX, y: newY };
 
@@ -201,11 +220,16 @@ export function useFarmGameLoop({
     if (direction === 'right') inputRef.current.right = pressed;
   }, []);
 
+  const setJoystickInput = useCallback((x: number, y: number, magnitude: number) => {
+    joystickRef.current = { x, y, magnitude };
+  }, []);
+
   useEffect(() => {
     const container = gameContainerRef.current;
     if (!container) return;
-    (container as unknown as { setTouchInput: typeof setTouchInput }).setTouchInput = setTouchInput;
-  }, [setTouchInput]);
+    (container as unknown as { setTouchInput: typeof setTouchInput; setJoystickInput: typeof setJoystickInput }).setTouchInput = setTouchInput;
+    (container as unknown as { setTouchInput: typeof setTouchInput; setJoystickInput: typeof setJoystickInput }).setJoystickInput = setJoystickInput;
+  }, [setTouchInput, setJoystickInput]);
 
   return {
     gameState,

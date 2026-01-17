@@ -5,11 +5,12 @@
  * Interactive pixel-art farm where players explore user's farms
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { PixelAvatar } from '@/components/PixelAvatar';
+import { Joystick, type JoystickOutput } from '@/components/Joystick';
 import type { Farm, User } from '@/types';
 import { useFarmGameLoop } from './useFarmGameLoop';
-import type { FarmLayout, FarmSpot, Direction } from './types';
+import type { FarmLayout, FarmSpot } from './types';
 import './FarmGame.css';
 
 export interface FarmGameProps {
@@ -42,6 +43,10 @@ const getStatusColor = (status: Farm['status']): string => {
     default: return 'var(--color-text-muted)';
   }
 };
+
+// Game dimensions
+const GAME_WIDTH = 768;
+const GAME_HEIGHT = 480;
 
 // Create farm layout based on farms (centered to avoid barn)
 const createFarmLayout = (farms: Farm[]): FarmLayout => {
@@ -87,6 +92,15 @@ export const FarmGame: React.FC<FarmGameProps> = ({
   isOwnFarm = true,
 }) => {
   const [activeFarmId, setActiveFarmId] = useState<string | null>(null);
+  const [viewportWidth, setViewportWidth] = useState(GAME_WIDTH); // Default to full width for SSR
+
+  // Update viewport width on client
+  useEffect(() => {
+    const updateWidth = () => setViewportWidth(Math.min(window.innerWidth, GAME_WIDTH));
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
 
   const layout = useMemo(() => createFarmLayout(farms), [farms]);
 
@@ -101,19 +115,39 @@ export const FarmGame: React.FC<FarmGameProps> = ({
     return farms.find((f) => f.id === activeFarmId) || null;
   }, [activeFarmId, farms]);
 
-  const handleTouchStart = useCallback((direction: Direction) => {
+  // Joystick handlers
+  const handleJoystickMove = useCallback((output: JoystickOutput) => {
     const container = gameContainerRef.current;
-    if (container && 'setTouchInput' in container) {
-      (container as unknown as { setTouchInput: (d: Direction, p: boolean) => void }).setTouchInput(direction, true);
+    if (container && 'setJoystickInput' in container) {
+      (container as unknown as { setJoystickInput: (x: number, y: number, m: number) => void })
+        .setJoystickInput(output.x, output.y, output.magnitude);
     }
   }, [gameContainerRef]);
 
-  const handleTouchEnd = useCallback((direction: Direction) => {
+  const handleJoystickStop = useCallback(() => {
     const container = gameContainerRef.current;
-    if (container && 'setTouchInput' in container) {
-      (container as unknown as { setTouchInput: (d: Direction, p: boolean) => void }).setTouchInput(direction, false);
+    if (container && 'setJoystickInput' in container) {
+      (container as unknown as { setJoystickInput: (x: number, y: number, m: number) => void })
+        .setJoystickInput(0, 0, 0);
     }
   }, [gameContainerRef]);
+
+  // Calculate camera offset for mobile (center on player)
+  const cameraOffset = useMemo(() => {
+    const playerX = gameState.player.position.x;
+    const playerY = gameState.player.position.y;
+    const viewportHeight = 280;
+    
+    // Center the viewport on the player
+    let offsetX = viewportWidth / 2 - playerX;
+    let offsetY = viewportHeight / 2 - playerY;
+    
+    // Clamp to prevent showing outside game bounds
+    offsetX = Math.min(0, Math.max(offsetX, viewportWidth - GAME_WIDTH));
+    offsetY = Math.min(0, Math.max(offsetY, viewportHeight - GAME_HEIGHT));
+    
+    return { x: offsetX, y: offsetY };
+  }, [gameState.player.position, viewportWidth]);
 
   return (
     <div className="farm-game">
@@ -147,124 +181,106 @@ export const FarmGame: React.FC<FarmGameProps> = ({
         role="application"
         aria-label="Farm exploration game. Use arrow keys or WASD to move."
       >
-        {/* Background */}
-        <div className="farm-game__background" />
-
-        {/* Farm spots */}
-        {layout.farmSpots.map((spot) => {
-          const isActive = activeFarmId === spot.farm.id;
-          const icon = getFarmIcon(spot.farm.name);
-
-          return (
-            <div
-              key={spot.id}
-              className={`farm-game__farm-spot farm-game__farm-spot--${spot.farm.status} ${isActive ? 'farm-game__farm-spot--active' : ''}`}
-              style={{
-                left: spot.position.x,
-                top: spot.position.y,
-              }}
-            >
-              <div className="farm-game__farm-icon">{icon}</div>
-              <span className="farm-game__farm-label">{spot.farm.name}</span>
-            </div>
-          );
-        })}
-
-        {/* Player */}
-        <div
-          className={`farm-game__player ${gameState.player.isMoving ? 'farm-game__player--moving' : ''}`}
+        {/* Camera wrapper for mobile */}
+        <div 
+          className="farm-game__camera"
           style={{
-            left: gameState.player.position.x - gameState.player.size.width / 2,
-            top: gameState.player.position.y - gameState.player.size.height / 2,
-          }}
+            '--camera-x': `${cameraOffset.x}px`,
+            '--camera-y': `${cameraOffset.y}px`,
+          } as React.CSSProperties}
         >
-          <div className="farm-game__player-avatar">
-            <PixelAvatar
-              username={avatarSeed}
-              seed={avatarSeed}
-              size="small"
-            />
+          {/* Background */}
+          <div className="farm-game__background" />
+
+          {/* Farm spots */}
+          {layout.farmSpots.map((spot) => {
+            const isActive = activeFarmId === spot.farm.id;
+            const icon = getFarmIcon(spot.farm.name);
+
+            return (
+              <div
+                key={spot.id}
+                className={`farm-game__farm-spot farm-game__farm-spot--${spot.farm.status} ${isActive ? 'farm-game__farm-spot--active' : ''}`}
+                style={{
+                  left: spot.position.x,
+                  top: spot.position.y,
+                }}
+              >
+                <div className="farm-game__farm-icon">{icon}</div>
+                <span className="farm-game__farm-label">{spot.farm.name}</span>
+              </div>
+            );
+          })}
+
+          {/* Player */}
+          <div
+            className={`farm-game__player ${gameState.player.isMoving ? 'farm-game__player--moving' : ''}`}
+            style={{
+              left: gameState.player.position.x - gameState.player.size.width / 2,
+              top: gameState.player.position.y - gameState.player.size.height / 2,
+            }}
+          >
+            <div className="farm-game__player-avatar">
+              <PixelAvatar
+                username={avatarSeed}
+                seed={avatarSeed}
+                size="medium"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Farm info popup */}
-        {activeFarm && (
-          <div className="farm-game__popup">
-            <div className="farm-game__popup-header">
-              <span className="farm-game__popup-icon">{getFarmIcon(activeFarm.name)}</span>
-              <h3 className="farm-game__popup-title">{activeFarm.name}</h3>
-            </div>
-            <p 
-              className="farm-game__popup-status"
-              style={{ color: getStatusColor(activeFarm.status) }}
-            >
-              {activeFarm.status === 'healthy' ? '✓ Healthy' : 
-               activeFarm.status === 'warning' ? '⚠ Needs Attention' : 
-               '⚠ Critical'}
-            </p>
-            <div className="farm-game__popup-sensors">
-              <span className="farm-game__popup-sensor">
-                <span className="farm-game__popup-sensor-icon">🌡️</span>
-                {activeFarm.sensors.temp.value}{activeFarm.sensors.temp.unit}
-              </span>
-              <span className="farm-game__popup-sensor">
-                <span className="farm-game__popup-sensor-icon">💧</span>
-                {activeFarm.sensors.humidity.value}{activeFarm.sensors.humidity.unit}
-              </span>
-              <span className="farm-game__popup-sensor">
-                <span className="farm-game__popup-sensor-icon">🌱</span>
-                {activeFarm.sensors.soil.value}{activeFarm.sensors.soil.unit}
-              </span>
-            </div>
-            {isOwnFarm && (
-              <div className="farm-game__popup-action">
-                <button
-                  className="farm-game__popup-btn"
-                  onClick={() => window.location.href = `/farms/${activeFarm.id}`}
-                >
-                  Go to Farm →
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Mobile D-pad */}
-        <div className="farm-game__dpad">
-          <button
-            className="farm-game__dpad-btn farm-game__dpad-btn--up"
-            onTouchStart={() => handleTouchStart('up')}
-            onTouchEnd={() => handleTouchEnd('up')}
-            onMouseDown={() => handleTouchStart('up')}
-            onMouseUp={() => handleTouchEnd('up')}
-            aria-label="Move up"
-          >▲</button>
-          <button
-            className="farm-game__dpad-btn farm-game__dpad-btn--down"
-            onTouchStart={() => handleTouchStart('down')}
-            onTouchEnd={() => handleTouchEnd('down')}
-            onMouseDown={() => handleTouchStart('down')}
-            onMouseUp={() => handleTouchEnd('down')}
-            aria-label="Move down"
-          >▼</button>
-          <button
-            className="farm-game__dpad-btn farm-game__dpad-btn--left"
-            onTouchStart={() => handleTouchStart('left')}
-            onTouchEnd={() => handleTouchEnd('left')}
-            onMouseDown={() => handleTouchStart('left')}
-            onMouseUp={() => handleTouchEnd('left')}
-            aria-label="Move left"
-          >◀</button>
-          <button
-            className="farm-game__dpad-btn farm-game__dpad-btn--right"
-            onTouchStart={() => handleTouchStart('right')}
-            onTouchEnd={() => handleTouchEnd('right')}
-            onMouseDown={() => handleTouchStart('right')}
-            onMouseUp={() => handleTouchEnd('right')}
-            aria-label="Move right"
-          >▶</button>
+        {/* Mobile Joystick */}
+        <div className="farm-game__joystick">
+          <Joystick
+            onMove={handleJoystickMove}
+            onStop={handleJoystickStop}
+            size={100}
+          />
         </div>
       </div>
+
+      {/* Farm info popup - outside container for mobile */}
+      {activeFarm && (
+        <div className="farm-game__popup">
+          <div className="farm-game__popup-header">
+            <span className="farm-game__popup-icon">{getFarmIcon(activeFarm.name)}</span>
+            <h3 className="farm-game__popup-title">{activeFarm.name}</h3>
+          </div>
+          <p 
+            className="farm-game__popup-status"
+            style={{ color: getStatusColor(activeFarm.status) }}
+          >
+            {activeFarm.status === 'healthy' ? '✓ Healthy' : 
+             activeFarm.status === 'warning' ? '⚠ Needs Attention' : 
+             '⚠ Critical'}
+          </p>
+          <div className="farm-game__popup-sensors">
+            <span className="farm-game__popup-sensor">
+              <span className="farm-game__popup-sensor-icon">🌡️</span>
+              {activeFarm.sensors.temp.value}{activeFarm.sensors.temp.unit}
+            </span>
+            <span className="farm-game__popup-sensor">
+              <span className="farm-game__popup-sensor-icon">💧</span>
+              {activeFarm.sensors.humidity.value}{activeFarm.sensors.humidity.unit}
+            </span>
+            <span className="farm-game__popup-sensor">
+              <span className="farm-game__popup-sensor-icon">🌱</span>
+              {activeFarm.sensors.soil.value}{activeFarm.sensors.soil.unit}
+            </span>
+          </div>
+          {isOwnFarm && (
+            <div className="farm-game__popup-action">
+              <button
+                className="farm-game__popup-btn"
+                onClick={() => window.location.href = `/farms/${activeFarm.id}`}
+              >
+                Go to Farm →
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="farm-game__instructions">
         Use <strong>WASD</strong> or <strong>Arrow keys</strong> to explore • Walk near plants to view details
