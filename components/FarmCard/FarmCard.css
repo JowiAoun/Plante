@@ -4,11 +4,12 @@
  */
 
 .farm-card {
-  width: 200px;
+  width: 100%;
   padding: var(--grid-unit);
   cursor: pointer;
   transition: transform 0.1s steps(2);
   background-color: var(--color-surface);
+  box-sizing: border-box;
 }
 
 /* Hover state interactions - preserve border color */
@@ -112,7 +113,7 @@
 }
 
 .farm-card__sensor-icon {
-  font-size: 16px;
+  font-size: 14px;
   margin-bottom: 2px;
 }
 
@@ -120,4 +121,5 @@
   font-family: var(--font-game);
   font-size: 8px;
   color: var(--color-text-muted);
+  white-space: nowrap;
 }
