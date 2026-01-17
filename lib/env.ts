@@ -28,6 +28,13 @@ export const env = {
   // ElevenLabs Voice (TTS)
   ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY || '',
   ELEVENLABS_VOICE_ID: process.env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL',
+  // Twilio SMS
+  TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID || '',
+  TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN || '',
+  TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER || '',
+  TWILIO_DAILY_LIMIT: parseInt(process.env.TWILIO_DAILY_LIMIT || '50', 10),
+  TWILIO_COOLDOWN_MINUTES: parseInt(process.env.TWILIO_COOLDOWN_MINUTES || '15', 10),
+  TWILIO_RECIPIENT_OVERRIDE: process.env.TWILIO_RECIPIENT_OVERRIDE || '',
 } as const;
 
 /**

@@ -14,6 +14,7 @@ import type {
   DbUserAchievement,
   DbFriendship,
   DbNotification,
+  DbSmsJob,
 } from './types';
 
 /**
@@ -78,4 +79,12 @@ export async function getFriendshipsCollection(): Promise<Collection<DbFriendshi
 export async function getNotificationsCollection(): Promise<Collection<DbNotification>> {
   const db = await getDb();
   return db.collection<DbNotification>('notifications');
+}
+
+/**
+ * Get the SMS jobs collection
+ */
+export async function getSmsJobsCollection(): Promise<Collection<DbSmsJob>> {
+  const db = await getDb();
+  return db.collection<DbSmsJob>('sms_jobs');
 }

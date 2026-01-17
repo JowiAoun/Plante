@@ -183,3 +183,105 @@ export interface DbNotification {
   createdAt: Date;
   expiresAt?: Date;
 }
+
+/**
+ * SMS Notification Preferences (embedded in user document)
+ */
+export interface SmsPreferences {
+  enabled: boolean;
+  phoneNumber: string;           // E.164 format: +1234567890
+  phoneVerified: boolean;
+  verificationCode?: string;     // Hashed 6-digit code
+  verificationExpires?: Date;
+  
+  categories: {
+    wateringConfirmation: boolean;
+    maintenanceReminders: boolean;
+    waterTankAlerts: boolean;
+    environmentalAlerts: boolean;
+  };
+  
+  quietHours: {
+    enabled: boolean;
+    start: string;               // "22:00" (10 PM)
+    end: string;                 // "08:00" (8 AM)
+    timezone: string;            // "America/New_York"
+  };
+  
+  thresholds: {
+    tankLowPercent: number;      // Default: 25
+    tankCriticalPercent: number; // Default: 10
+  };
+  
+  lastSmsAt?: Date;
+  dailySmsCount: number;
+  lastCountReset?: Date;
+}
+
+/**
+ * Default SMS preferences for new users
+ */
+export const defaultSmsPreferences: SmsPreferences = {
+  enabled: false,
+  phoneNumber: '',
+  phoneVerified: false,
+  categories: {
+    wateringConfirmation: true,
+    maintenanceReminders: true,
+    waterTankAlerts: true,
+    environmentalAlerts: true,
+  },
+  quietHours: {
+    enabled: false,
+    start: '22:00',
+    end: '08:00',
+    timezone: 'America/New_York',
+  },
+  thresholds: {
+    tankLowPercent: 25,
+    tankCriticalPercent: 10,
+  },
+  dailySmsCount: 0,
+};
+
+/**
+ * SMS notification types
+ */
+export type SmsNotificationType = 
+  | 'watering'
+  | 'maintenance'
+  | 'tank_low'
+  | 'tank_critical'
+  | 'tank_empty'
+  | 'temp_high'
+  | 'temp_low'
+  | 'humidity_alert'
+  | 'verification';
+
+/**
+ * SMS job status
+ */
+export type SmsJobStatus = 'pending' | 'sent' | 'failed' | 'cancelled';
+
+/**
+ * SMS Notification Job (queue document)
+ */
+export interface DbSmsJob {
+  _id: ObjectId;
+  userId: ObjectId;
+  farmId?: ObjectId;
+  type: SmsNotificationType;
+  message: string;
+  phoneNumber: string;
+  
+  status: SmsJobStatus;
+  attempts: number;
+  maxAttempts: number;          // Default: 3
+  
+  scheduledFor: Date;
+  createdAt: Date;
+  sentAt?: Date;
+  failedAt?: Date;
+  errorMessage?: string;
+  twilioMessageSid?: string;
+}

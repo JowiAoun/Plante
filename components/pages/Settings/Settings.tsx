@@ -2,15 +2,49 @@
 
 /**
  * Settings Page
- * Theme switcher and preferences
+ * Theme switcher, notifications, and preferences
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ActionButton } from '@/components/../components/ActionButton';
 import { Toast, ToastContainer } from '@/components/../components/Toast';
 import './Settings.css';
 
 type Theme = 'default' | 'spring' | 'night' | 'neon';
+
+interface SmsPreferences {
+  smsEnabled: boolean;
+  phoneNumber: string;
+  phoneVerified: boolean;
+  categories: {
+    wateringConfirmation: boolean;
+    maintenanceReminders: boolean;
+    waterTankAlerts: boolean;
+    environmentalAlerts: boolean;
+  };
+  quietHours: {
+    enabled: boolean;
+    start: string;
+    end: string;
+  };
+}
+
+const defaultSmsPreferences: SmsPreferences = {
+  smsEnabled: false,
+  phoneNumber: '',
+  phoneVerified: false,
+  categories: {
+    wateringConfirmation: true,
+    maintenanceReminders: true,
+    waterTankAlerts: true,
+    environmentalAlerts: true,
+  },
+  quietHours: {
+    enabled: false,
+    start: '22:00',
+    end: '08:00',
+  },
+};
 
 /**
  * Settings - Application settings page
@@ -18,6 +52,28 @@ type Theme = 'default' | 'spring' | 'night' | 'neon';
 export const Settings: React.FC = () => {
   const [currentTheme, setCurrentTheme] = useState<Theme>('default');
   const [toast, setToast] = useState<string | null>(null);
+  const [smsPrefs, setSmsPrefs] = useState<SmsPreferences>(defaultSmsPreferences);
+  const [phoneInput, setPhoneInput] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationSent, setVerificationSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Fetch SMS preferences on mount
+  useEffect(() => {
+    async function fetchPreferences() {
+      try {
+        const res = await fetch('/api/notifications/preferences');
+        if (res.ok) {
+          const data = await res.json();
+          setSmsPrefs(data);
+          setPhoneInput(data.phoneNumber || '');
+        }
+      } catch (error) {
+        console.error('Error fetching preferences:', error);
+      }
+    }
+    fetchPreferences();
+  }, []);
 
   const themes: { id: Theme; name: string; emoji: string; colors: string[] }[] = [
     { id: 'default', name: 'Default', emoji: '🎮', colors: ['#1D2B53', '#29ADFF', '#FFEC27'] },
@@ -30,6 +86,112 @@ export const Settings: React.FC = () => {
     setCurrentTheme(theme);
     document.documentElement.setAttribute('data-theme', theme);
     setToast(`Theme changed to ${theme}`);
+  };
+
+  const updatePreferences = useCallback(async (updates: Partial<SmsPreferences>) => {
+    try {
+      const res = await fetch('/api/notifications/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSmsPrefs(data);
+        return true;
+      }
+    } catch (error) {
+      console.error('Error updating preferences:', error);
+    }
+    return false;
+  }, []);
+
+  const handleSmsToggle = async (enabled: boolean) => {
+    const success = await updatePreferences({ smsEnabled: enabled });
+    if (success) {
+      setToast(`SMS notifications ${enabled ? 'enabled' : 'disabled'}`);
+    }
+  };
+
+  const handleSendVerification = async () => {
+    if (!phoneInput) {
+      setToast('Please enter a phone number');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const res = await fetch('/api/notifications/verify/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber: phoneInput }),
+      });
+      
+      if (res.ok) {
+        setVerificationSent(true);
+        setToast('Verification code sent!');
+      } else {
+        const data = await res.json();
+        setToast(data.error || 'Failed to send code');
+      }
+    } catch (error) {
+      console.error('Error sending verification:', error);
+      setToast('Failed to send verification code');
+    }
+    setLoading(false);
+  };
+
+  const handleConfirmVerification = async () => {
+    if (!verificationCode) {
+      setToast('Please enter the verification code');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const res = await fetch('/api/notifications/verify/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: verificationCode }),
+      });
+      
+      if (res.ok) {
+        setSmsPrefs(prev => ({ ...prev, phoneVerified: true, phoneNumber: phoneInput }));
+        setVerificationSent(false);
+        setVerificationCode('');
+        setToast('Phone verified successfully!');
+      } else {
+        const data = await res.json();
+        setToast(data.error || 'Invalid code');
+      }
+    } catch (error) {
+      console.error('Error confirming verification:', error);
+      setToast('Failed to verify code');
+    }
+    setLoading(false);
+  };
+
+  const handleCategoryToggle = async (category: keyof SmsPreferences['categories'], enabled: boolean) => {
+    const newCategories = { ...smsPrefs.categories, [category]: enabled };
+    const success = await updatePreferences({ categories: newCategories } as Partial<SmsPreferences>);
+    if (success) {
+      const categoryNames: Record<string, string> = {
+        wateringConfirmation: 'Watering confirmations',
+        maintenanceReminders: 'Maintenance reminders',
+        waterTankAlerts: 'Water tank alerts',
+        environmentalAlerts: 'Environmental alerts',
+      };
+      setToast(`${categoryNames[category]} ${enabled ? 'enabled' : 'disabled'}`);
+    }
+  };
+
+  const handleQuietHoursToggle = async (enabled: boolean) => {
+    const success = await updatePreferences({ 
+      quietHours: { ...smsPrefs.quietHours, enabled } 
+    } as Partial<SmsPreferences>);
+    if (success) {
+      setToast(`Quiet hours ${enabled ? 'enabled' : 'disabled'}`);
+    }
   };
 
   return (
@@ -64,9 +226,142 @@ export const Settings: React.FC = () => {
         </div>
       </section>
 
-      {/* Notifications */}
+      {/* SMS Notifications */}
       <section className="settings__section nes-container is-dark">
-        <h2 className="settings__section-title">Notifications</h2>
+        <h2 className="settings__section-title">📱 SMS Notifications</h2>
+        
+        {/* Master Toggle */}
+        <div className="settings__option">
+          <label className="settings__label">
+            <input 
+              type="checkbox" 
+              className="nes-checkbox is-dark" 
+              checked={smsPrefs.smsEnabled}
+              onChange={(e) => handleSmsToggle(e.target.checked)}
+            />
+            <span>Enable SMS Notifications</span>
+          </label>
+        </div>
+
+        {/* Phone Number */}
+        <div className="settings__phone-section">
+          <label className="settings__label settings__label--block">Phone Number</label>
+          <div className="settings__phone-input-row">
+            <input
+              type="tel"
+              className="nes-input is-dark settings__phone-input"
+              placeholder="+1234567890"
+              value={phoneInput}
+              onChange={(e) => setPhoneInput(e.target.value)}
+              disabled={smsPrefs.phoneVerified}
+            />
+            {smsPrefs.phoneVerified ? (
+              <span className="settings__verified-badge">✓ Verified</span>
+            ) : (
+              <button
+                className="nes-btn is-primary settings__verify-btn"
+                onClick={handleSendVerification}
+                disabled={loading || !phoneInput}
+              >
+                {loading ? '...' : 'Verify'}
+              </button>
+            )}
+          </div>
+          
+          {/* Verification Code Input */}
+          {verificationSent && !smsPrefs.phoneVerified && (
+            <div className="settings__verification-row">
+              <input
+                type="text"
+                className="nes-input is-dark settings__code-input"
+                placeholder="6-digit code"
+                maxLength={6}
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+              />
+              <button
+                className="nes-btn is-success"
+                onClick={handleConfirmVerification}
+                disabled={loading || verificationCode.length !== 6}
+              >
+                Confirm
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Category Toggles */}
+        {smsPrefs.smsEnabled && smsPrefs.phoneVerified && (
+          <>
+            <div className="settings__subsection">
+              <label className="settings__label settings__label--block">Notification Types</label>
+              <div className="settings__option">
+                <label className="settings__label">
+                  <input 
+                    type="checkbox" 
+                    className="nes-checkbox is-dark" 
+                    checked={smsPrefs.categories.wateringConfirmation}
+                    onChange={(e) => handleCategoryToggle('wateringConfirmation', e.target.checked)}
+                  />
+                  <span>🌱 Watering confirmations</span>
+                </label>
+              </div>
+              <div className="settings__option">
+                <label className="settings__label">
+                  <input 
+                    type="checkbox" 
+                    className="nes-checkbox is-dark" 
+                    checked={smsPrefs.categories.maintenanceReminders}
+                    onChange={(e) => handleCategoryToggle('maintenanceReminders', e.target.checked)}
+                  />
+                  <span>🔔 Maintenance reminders</span>
+                </label>
+              </div>
+              <div className="settings__option">
+                <label className="settings__label">
+                  <input 
+                    type="checkbox" 
+                    className="nes-checkbox is-dark" 
+                    checked={smsPrefs.categories.waterTankAlerts}
+                    onChange={(e) => handleCategoryToggle('waterTankAlerts', e.target.checked)}
+                  />
+                  <span>💧 Water tank alerts</span>
+                </label>
+              </div>
+              <div className="settings__option">
+                <label className="settings__label">
+                  <input 
+                    type="checkbox" 
+                    className="nes-checkbox is-dark" 
+                    checked={smsPrefs.categories.environmentalAlerts}
+                    onChange={(e) => handleCategoryToggle('environmentalAlerts', e.target.checked)}
+                  />
+                  <span>🌡️ Environmental alerts</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Quiet Hours */}
+            <div className="settings__subsection">
+              <div className="settings__option">
+                <label className="settings__label">
+                  <input 
+                    type="checkbox" 
+                    className="nes-checkbox is-dark" 
+                    checked={smsPrefs.quietHours.enabled}
+                    onChange={(e) => handleQuietHoursToggle(e.target.checked)}
+                  />
+                  <span>🌙 Quiet hours ({smsPrefs.quietHours.start} - {smsPrefs.quietHours.end})</span>
+                </label>
+              </div>
+            </div>
+          </>
+        )}
+      </section>
+
+      {/* Other Notifications */}
+      <section className="settings__section nes-container is-dark">
+        <h2 className="settings__section-title">Other Notifications</h2>
         <div className="settings__option">
           <label className="settings__label">
             <input 
