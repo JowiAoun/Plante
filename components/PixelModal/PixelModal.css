@@ -11,9 +11,11 @@
 
 .pixel-modal {
   position: relative;
-  max-height: 90vh;
-  overflow: auto;
   outline: none;
+  /* Allow content to determine size without scrollbars */
+  height: auto;
+  max-height: none;
+  overflow: visible;
 }
 
 /* Sizes */
