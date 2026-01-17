@@ -1,0 +1,1 @@
+export { VoiceToggle } from './VoiceToggle';

@@ -25,3 +25,12 @@ export { LevelUpModal } from './LevelUpModal';
 export { PixelModal } from './PixelModal';
 export { PixelInput } from './PixelInput';
 export { PixelAvatar } from './PixelAvatar';
+
+// Chat
+export { ChatMessage } from './ChatMessage';
+export { ChatMessageList } from './ChatMessageList';
+export { ChatInput } from './ChatInput';
+export { VoiceToggle } from './VoiceToggle';
+export { AIAvatar } from './AIAvatar';
+export { AudioPlayer } from './AudioPlayer';
+

@@ -50,6 +50,7 @@ export const AppShell: React.FC<AppShellProps> = ({
 
   const navItems = [
     { path: '/dashboard', icon: '🏠', label: 'Dashboard' },
+    { path: '/chat', icon: '💬', label: 'Chat' },
     { path: '/profile', icon: '👤', label: 'Profile' },
     { path: `/farms/explore/${user?.id || 'guest'}`, icon: '🌾', label: 'Farm' },
     { path: '/museum', icon: '🏛️', label: 'Museum' },

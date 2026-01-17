@@ -10,7 +10,7 @@ export const env = {
   // Google OAuth
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
-  
+
   // NextAuth
   NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || '',
@@ -21,6 +21,13 @@ export const env = {
   // Sentry
   SENTRY_DSN: process.env.SENTRY_DSN || '',
   SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT || 'development',
+
+  // Gemini AI (Chat)
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
+
+  // ElevenLabs Voice (TTS)
+  ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY || '',
+  ELEVENLABS_VOICE_ID: process.env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL',
 } as const;
 
 /**

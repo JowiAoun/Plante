@@ -1,0 +1,46 @@
+/**
+ * AudioPlayer Styles
+ */
+
+.audio-player {
+    position: relative;
+}
+
+.audio-player__element {
+    display: none;
+}
+
+.audio-player__loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    background-color: var(--color-surface);
+    border: 2px solid var(--color-border);
+    font-family: var(--font-game);
+    font-size: 8px;
+    color: var(--color-text-muted);
+}
+
+.audio-player__loading-text {
+    animation: blink 1s steps(2) infinite;
+}
+
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .audio-player__loading-text {
+        animation: none;
+    }
+}

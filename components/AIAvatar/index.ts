@@ -1,0 +1,1 @@
+export { AIAvatar } from './AIAvatar';

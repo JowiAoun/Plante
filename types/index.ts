@@ -116,3 +116,48 @@ export type ThemeVariant = 'default' | 'spring' | 'night' | 'neon';
 
 // Pixel scale
 export type PixelScale = '1x' | '2x';
+
+// Chat message types
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  audioUrl?: string;
+  isLoading?: boolean;
+}
+
+// Chat user context for AI personalization
+export interface ChatUserContext {
+  user: {
+    id: string;
+    username: string;
+    displayName: string;
+    level: number;
+    xp: number;
+    avatarSeed: string;
+  };
+  farms: Farm[];
+  achievements: Achievement[];
+  recentActivity: ActivityEvent[];
+}
+
+// Chat API request/response
+export interface ChatRequest {
+  message: string;
+  conversationHistory?: ChatMessage[];
+  voiceEnabled?: boolean;
+}
+
+export interface ChatResponse {
+  response: string;
+  audioUrl?: string;
+  suggestedActions?: string[];
+}
+
+// Chat error types
+export type ChatErrorType =
+  | 'GEMINI_RATE_LIMIT'
+  | 'ELEVENLABS_QUOTA'
+  | 'NETWORK_ERROR'
+  | 'CONTEXT_TOO_LONG';

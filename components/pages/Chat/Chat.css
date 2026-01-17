@@ -1,0 +1,71 @@
+/**
+ * Chat Page Styles
+ */
+
+.chat {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 64px);
+    /* Account for TopBar */
+    background-color: var(--color-background);
+}
+
+/* Header */
+.chat__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background-color: var(--color-surface);
+    border-bottom: 4px solid var(--color-border);
+}
+
+.chat__header-controls {
+    display: flex;
+    gap: 8px;
+}
+
+/* Error banner */
+.chat__error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background-color: var(--color-critical);
+    color: var(--color-white);
+    font-family: var(--font-ui);
+    font-size: 11px;
+}
+
+.chat__error-icon {
+    font-size: 16px;
+}
+
+.chat__error-message {
+    flex: 1;
+}
+
+.chat__error-dismiss {
+    padding: 4px 8px;
+    background: none;
+    border: 2px solid var(--color-white);
+    color: var(--color-white);
+    font-family: var(--font-game);
+    font-size: 10px;
+    cursor: var(--cursor-pointer);
+}
+
+.chat__error-dismiss:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+    .chat {
+        height: calc(100vh - 56px);
+    }
+
+    .chat__header {
+        padding: 12px;
+    }
+}
