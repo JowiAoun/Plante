@@ -45,7 +45,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       // Handle session update (e.g., after profile completion)
-      if (trigger === 'update' && session) {
+      if (trigger === 'update') {
         // Refresh user data from database
         const users = await getUsersCollection();
         const dbUser = await users.findOne({ _id: new ObjectId(token.id as string) });
@@ -90,17 +90,10 @@ export const authOptions: NextAuthOptions = {
   events: {
     async createUser({ user }) {
       // Initialize new user with default values
-      // Use upsert to ensure user is created even if MongoDBAdapter fails
       const users = await getUsersCollection();
-      const result = await users.updateOne(
+      await users.updateOne(
         { _id: new ObjectId(user.id) },
         {
-          $setOnInsert: {
-            _id: new ObjectId(user.id),
-            email: user.email || '',
-            image: user.image || undefined,
-            emailVerified: null,
-          },
           $set: {
             level: 1,
             xp: 0,
@@ -114,10 +107,8 @@ export const authOptions: NextAuthOptions = {
             createdAt: new Date(),
             updatedAt: new Date(),
           },
-        },
-        { upsert: true }
+        }
       );
-      console.log('Create user result:', { userId: user.id, upsertedId: result.upsertedId, matched: result.matchedCount });
     },
   },
   secret: env.NEXTAUTH_SECRET,

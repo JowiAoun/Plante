@@ -138,8 +138,8 @@ export const ProfileSetup: React.FC = () => {
         return;
       }
 
-      // Update session to refresh JWT token
-      await updateSession();
+      // Update session to refresh JWT token with new profile data
+      await updateSession({ trigger: 'profile-complete' });
 
       // Hard redirect to dashboard to ensure fresh session
       window.location.href = '/dashboard';
