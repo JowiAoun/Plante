@@ -66,7 +66,7 @@ export const FarmCard: React.FC<FarmCardProps> = ({
         <div className="farm-card__placeholder-icon">🌱</div>
       </div>
 
-      {/* Header */}
+      {/* Header with name and hearts */}
       <div className="farm-card__header">
         <h3 className="farm-card__title">{farm.name}</h3>
         <span className="farm-card__status" aria-label={`Health: ${farm.status}`}>
