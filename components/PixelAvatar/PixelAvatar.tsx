@@ -8,6 +8,7 @@
 import React, { useMemo } from 'react';
 import { createAvatar } from '@dicebear/core';
 import { pixelArt } from '@dicebear/collection';
+import type { EmoteType } from '@/components/EmoteMenu';
 import './PixelAvatar.css';
 
 export interface PixelAvatarProps {
@@ -19,6 +20,8 @@ export interface PixelAvatarProps {
   className?: string;
   /** Seed customization */
   seed?: string;
+  /** Current emote animation */
+  emote?: EmoteType | null;
 }
 
 /**
@@ -29,6 +32,7 @@ export const PixelAvatar: React.FC<PixelAvatarProps> = ({
   size = 'medium',
   className = '',
   seed,
+  emote,
 }) => {
   const avatarSvg = useMemo(() => {
     const avatar = createAvatar(pixelArt, {
@@ -40,9 +44,11 @@ export const PixelAvatar: React.FC<PixelAvatarProps> = ({
     return avatar.toString();
   }, [username, seed]);
 
+  const emoteClass = emote ? `pixel-avatar--emote-${emote}` : '';
+
   return (
     <div
-      className={`pixel-avatar pixel-avatar--${size} ${className}`}
+      className={`pixel-avatar pixel-avatar--${size} ${emoteClass} ${className}`}
       role="img"
       aria-label={`Avatar for ${username}`}
       dangerouslySetInnerHTML={{ __html: avatarSvg }}

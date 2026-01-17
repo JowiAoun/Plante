@@ -26,3 +26,67 @@
   height: 100%;
   display: block;
 }
+
+/* Emote Animations */
+@keyframes emote-wave {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-15deg); }
+  75% { transform: rotate(15deg); }
+}
+
+@keyframes emote-jump {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes emote-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes emote-nod {
+  0%, 100% { transform: translateY(0); }
+  33% { transform: translateY(-5px); }
+  66% { transform: translateY(-5px); }
+}
+
+@keyframes emote-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-8px); }
+  80% { transform: translateX(8px); }
+}
+
+@keyframes emote-celebrate {
+  0%, 100% { transform: scale(1) translateY(0) rotate(0deg); }
+  25% { transform: scale(1.2) translateY(-15px) rotate(-10deg); }
+  50% { transform: scale(1.1) translateY(-10px) rotate(10deg); }
+  75% { transform: scale(1.2) translateY(-15px) rotate(-5deg); }
+}
+
+/* Emote Classes */
+.pixel-avatar--emote-wave {
+  animation: emote-wave 0.8s ease-in-out;
+}
+
+.pixel-avatar--emote-jump {
+  animation: emote-jump 0.5s ease-out;
+}
+
+.pixel-avatar--emote-spin {
+  animation: emote-spin 0.6s linear;
+}
+
+.pixel-avatar--emote-nod {
+  animation: emote-nod 0.5s ease-in-out;
+}
+
+.pixel-avatar--emote-shake {
+  animation: emote-shake 0.4s linear;
+}
+
+.pixel-avatar--emote-celebrate {
+  animation: emote-celebrate 1s ease-in-out;
+}
+

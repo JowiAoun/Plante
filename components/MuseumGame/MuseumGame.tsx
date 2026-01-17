@@ -8,6 +8,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { PixelAvatar } from '@/components/PixelAvatar';
 import { Joystick, type JoystickOutput } from '@/components/Joystick';
+import { EmoteMenu, EMOTES, type EmoteType } from '@/components/EmoteMenu';
 import { mockAchievements } from '@/mocks/data';
 import { achievementIcons, rarityColors } from '@/data/achievements';
 import type { Achievement } from '@/types';
@@ -75,6 +76,8 @@ export const MuseumGame: React.FC<MuseumGameProps> = ({
 }) => {
   const [activeAchievementId, setActiveAchievementId] = useState<string | null>(null);
   const [viewportWidth, setViewportWidth] = useState(GAME_WIDTH); // Default to full width for SSR
+  const [showEmoteMenu, setShowEmoteMenu] = useState(false);
+  const [currentEmote, setCurrentEmote] = useState<EmoteType | null>(null);
 
   // Update viewport width on client
   useEffect(() => {
@@ -82,6 +85,30 @@ export const MuseumGame: React.FC<MuseumGameProps> = ({
     updateWidth();
     window.addEventListener('resize', updateWidth);
     return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
+  // Emote keyboard handler
+  useEffect(() => {
+    const handleEmoteKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === 'g') {
+        setShowEmoteMenu(prev => !prev);
+        return;
+      }
+      if (showEmoteMenu && e.key >= '1' && e.key <= '6') {
+        const index = parseInt(e.key) - 1;
+        if (EMOTES[index]) {
+          handleEmoteSelect(EMOTES[index].id);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleEmoteKey);
+    return () => window.removeEventListener('keydown', handleEmoteKey);
+  }, [showEmoteMenu]);
+
+  const handleEmoteSelect = useCallback((emote: EmoteType) => {
+    setCurrentEmote(emote);
+    setShowEmoteMenu(false);
+    setTimeout(() => setCurrentEmote(null), 1200);
   }, []);
 
   const layout = useMemo(
@@ -217,9 +244,17 @@ export const MuseumGame: React.FC<MuseumGameProps> = ({
                 username={avatarSeed}
                 seed={avatarSeed}
                 size="medium"
+                emote={currentEmote}
               />
             </div>
           </div>
+
+          {/* Emote Menu */}
+          <EmoteMenu
+            isOpen={showEmoteMenu}
+            onSelect={handleEmoteSelect}
+            onClose={() => setShowEmoteMenu(false)}
+          />
         </div>
 
         {/* Mobile Joystick */}

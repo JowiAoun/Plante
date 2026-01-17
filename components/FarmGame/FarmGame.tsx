@@ -8,6 +8,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { PixelAvatar } from '@/components/PixelAvatar';
 import { Joystick, type JoystickOutput } from '@/components/Joystick';
+import { EmoteMenu, EMOTES, type EmoteType } from '@/components/EmoteMenu';
 import type { Farm, User } from '@/types';
 import { useFarmGameLoop } from './useFarmGameLoop';
 import type { FarmLayout, FarmSpot } from './types';
@@ -93,6 +94,8 @@ export const FarmGame: React.FC<FarmGameProps> = ({
 }) => {
   const [activeFarmId, setActiveFarmId] = useState<string | null>(null);
   const [viewportWidth, setViewportWidth] = useState(GAME_WIDTH); // Default to full width for SSR
+  const [showEmoteMenu, setShowEmoteMenu] = useState(false);
+  const [currentEmote, setCurrentEmote] = useState<EmoteType | null>(null);
 
   // Update viewport width on client
   useEffect(() => {
@@ -100,6 +103,32 @@ export const FarmGame: React.FC<FarmGameProps> = ({
     updateWidth();
     window.addEventListener('resize', updateWidth);
     return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
+  // Emote keyboard handler
+  useEffect(() => {
+    const handleEmoteKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === 'g') {
+        setShowEmoteMenu(prev => !prev);
+        return;
+      }
+      // Number keys 1-6 for quick emote selection when menu is open
+      if (showEmoteMenu && e.key >= '1' && e.key <= '6') {
+        const index = parseInt(e.key) - 1;
+        if (EMOTES[index]) {
+          handleEmoteSelect(EMOTES[index].id);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleEmoteKey);
+    return () => window.removeEventListener('keydown', handleEmoteKey);
+  }, [showEmoteMenu]);
+
+  const handleEmoteSelect = useCallback((emote: EmoteType) => {
+    setCurrentEmote(emote);
+    setShowEmoteMenu(false);
+    // Clear emote after animation completes
+    setTimeout(() => setCurrentEmote(null), 1200);
   }, []);
 
   const layout = useMemo(() => createFarmLayout(farms), [farms]);
@@ -225,9 +254,17 @@ export const FarmGame: React.FC<FarmGameProps> = ({
                 username={avatarSeed}
                 seed={avatarSeed}
                 size="medium"
+                emote={currentEmote}
               />
             </div>
           </div>
+
+          {/* Emote Menu */}
+          <EmoteMenu
+            isOpen={showEmoteMenu}
+            onSelect={handleEmoteSelect}
+            onClose={() => setShowEmoteMenu(false)}
+          />
         </div>
 
         {/* Mobile Joystick */}

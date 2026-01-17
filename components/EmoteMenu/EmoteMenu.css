@@ -1,0 +1,78 @@
+.emote-menu {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.emote-menu__backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.emote-menu__container {
+  position: relative;
+  background-color: rgba(30, 30, 50, 0.9);
+  border: 3px solid var(--color-border);
+  border-radius: 4px;
+  padding: 12px;
+  z-index: 101;
+}
+
+.emote-menu__title {
+  font-family: var(--font-game);
+  font-size: 10px;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.emote-menu__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.emote-menu__btn {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  background-color: rgba(60, 60, 80, 0.8);
+  border: 2px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s;
+}
+
+.emote-menu__btn:hover {
+  background-color: rgba(80, 80, 120, 0.9);
+  border-color: var(--color-accent);
+  transform: scale(1.1);
+}
+
+.emote-menu__btn:active {
+  transform: scale(0.95);
+}
+
+.emote-menu__icon {
+  font-size: 24px;
+}
+
+.emote-menu__key {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-family: var(--font-game);
+  font-size: 8px;
+  color: var(--color-text-muted);
+}
