@@ -133,6 +133,7 @@ export const Profile: React.FC<ProfileProps> = ({
       <LevelUpModal
         isOpen={showLevelUp}
         level={user.level + 1}
+        avatarSeed={user.avatarSeed || user.username}
         rewards={[
           { icon: '🌱', name: 'New Seed Slot' },
           { icon: '💧', name: '+10 Water Capacity' },

@@ -83,3 +83,19 @@
 .level-up-modal__action {
   margin-top: 16px;
 }
+
+.level-up-modal__avatar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.level-up-modal__avatar .pixel-avatar {
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Override spin animation to loop during level up celebration */
+.level-up-modal__avatar .pixel-avatar--emote-spin {
+  animation: emote-spin 0.6s linear 3;
+}

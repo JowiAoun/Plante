@@ -5,10 +5,12 @@
  * Celebratory overlay when level is reached
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PixelModal } from '@/components/PixelModal';
 import { ActionButton } from '@/components/ActionButton';
+import { PixelAvatar } from '@/components/PixelAvatar';
+import type { EmoteType } from '@/components/EmoteMenu';
 import './LevelUpModal.css';
 
 export interface Reward {
@@ -22,6 +24,8 @@ export interface LevelUpModalProps {
   isOpen: boolean;
   /** New level reached */
   level: number;
+  /** User's avatar seed for spinning avatar */
+  avatarSeed?: string;
   /** Rewards earned */
   rewards?: Reward[];
   /** Close callback */
@@ -34,9 +38,23 @@ export interface LevelUpModalProps {
 export const LevelUpModal: React.FC<LevelUpModalProps> = ({
   isOpen,
   level,
+  avatarSeed,
   rewards = [],
   onClose,
 }) => {
+  const [spinEmote, setSpinEmote] = useState<EmoteType | null>(null);
+
+  // Trigger spin animation when modal opens
+  useEffect(() => {
+    if (isOpen && avatarSeed) {
+      setSpinEmote('spin');
+      // Keep spinning for a few rotations
+      const timer = setTimeout(() => setSpinEmote(null), 1800);
+      return () => clearTimeout(timer);
+    } else {
+      setSpinEmote(null);
+    }
+  }, [isOpen, avatarSeed]);
   return (
     <PixelModal
       isOpen={isOpen}
@@ -60,6 +78,23 @@ export const LevelUpModal: React.FC<LevelUpModalProps> = ({
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Spinning Avatar */}
+        {avatarSeed && (
+          <motion.div
+            className="level-up-modal__avatar"
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ delay: 0.1, duration: 0.4, type: 'spring' }}
+          >
+            <PixelAvatar
+              username={avatarSeed}
+              seed={avatarSeed}
+              size="large"
+              emote={spinEmote}
+            />
+          </motion.div>
+        )}
 
         {/* Level display */}
         <motion.div
