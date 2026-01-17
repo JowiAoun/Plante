@@ -17,6 +17,10 @@ export const env = {
 
   // MongoDB
   MONGODB_URI: process.env.MONGODB_URI || '',
+
+  // Sentry
+  SENTRY_DSN: process.env.SENTRY_DSN || '',
+  SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT || 'development',
 } as const;
 
 /**
