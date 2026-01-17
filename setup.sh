@@ -67,6 +67,12 @@ echo ""
 echo -e "${YELLOW}🏆 Seeding achievements...${NC}"
 npx tsx scripts/db/seed-achievements.ts
 
+# Step 3: Seed farms
+echo -e "${YELLOW}🌾 Seeding farms...${NC}"
+npx tsx scripts/db/seed-farms.ts
+
+echo ""
+
 echo ""
 echo -e "${GREEN}✅ Setup complete!${NC}"
 echo ""

@@ -2,7 +2,7 @@
 
 import { use } from 'react'
 import Link from 'next/link'
-import { mockFarms } from '@/mocks/data'
+import { mockFarms, kalanchoeFarm } from '@/mocks/data'
 import { SensorBadge } from '@/components/SensorBadge'
 import { ActionButton } from '@/components/ActionButton'
 import { Toast, ToastContainer } from '@/components/Toast'
@@ -22,7 +22,8 @@ export default function FarmPage({ params }: FarmPageProps) {
   const { id } = use(params)
   const router = useRouter()
   const { user: currentUser } = useCurrentUser()
-  const farm = mockFarms.find(f => f.id === id)
+  // Look for farm in mock farms OR it could be the Kalanchoe Farm
+  const farm = mockFarms.find(f => f.id === id) || (id === kalanchoeFarm.id ? kalanchoeFarm : undefined)
   const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null)
 
   const handleNavigate = (page: string) => {

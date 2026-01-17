@@ -9,13 +9,16 @@ import React from 'react'
 import Link from 'next/link'
 import { FarmCard } from '@/components/FarmCard'
 import { ActionButton } from '@/components/ActionButton'
-import { mockFarms, mockUsers } from '@/mocks/data'
+import { getCurrentUserFarms } from '@/mocks/data'
 import './Dashboard.css'
 
 /**
  * Dashboard - Main application page
  */
 export const Dashboard: React.FC = () => {
+  // Get current user's farms (includes mock farms + Kalanchoe Farm)
+  const farms = getCurrentUserFarms()
+
   return (
     <div className="dashboard">
       {/* Page Header */}
@@ -32,7 +35,7 @@ export const Dashboard: React.FC = () => {
           <ActionButton label="Add Farm" variant="primary" icon="➕" size="small" />
         </div>
         <div className="dashboard__farm-grid">
-          {mockFarms.map((farm) => (
+          {farms.map((farm) => (
             <Link 
               key={farm.id} 
               href={`/farms/${farm.id}`}
@@ -51,3 +54,4 @@ export const Dashboard: React.FC = () => {
 }
 
 export default Dashboard
+

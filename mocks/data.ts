@@ -97,6 +97,45 @@ export const mockFarms: Farm[] = [
   },
 ];
 
+/**
+ * Kalanchoe Farm - The real IoT-connected farm
+ * This is the special farm connected to the Raspberry Pi
+ * All users will have access to this farm
+ */
+export const kalanchoeFarm: Farm = {
+  id: 'kalanchoe-farm',
+  name: 'Kalanchoe Farm',
+  ownerId: 'shared', // Special shared farm
+  status: 'healthy',
+  thumbnailUrl: '/sprites/farm_succulent_32.png',
+  sensors: {
+    temp: { value: 23, unit: '°C', trend: 'stable' },
+    humidity: { value: 55, unit: '%', trend: 'stable' },
+    soil: { value: 40, unit: '%', trend: 'stable' },
+  },
+  lastSeen: new Date().toISOString(),
+};
+
+/**
+ * Get farms for a user - includes mock farms + the real Kalanchoe Farm
+ */
+export function getUserFarms(userId: string): Farm[] {
+  // Get mock farms owned by this user
+  const userMockFarms = mockFarms.filter(f => f.ownerId === userId);
+  
+  // Always include the Kalanchoe Farm for the current user
+  return [...userMockFarms, { ...kalanchoeFarm, ownerId: userId }];
+}
+
+/**
+ * Get all farms including the real Kalanchoe Farm (for current user)
+ */
+export function getCurrentUserFarms(): Farm[] {
+  // For the current user, show first mock user's farms + Kalanchoe Farm
+  const demoFarms = mockFarms.filter(f => f.ownerId === '8f7a2d');
+  return [...demoFarms, kalanchoeFarm];
+}
+
 // Mock Achievements
 export const mockAchievements: Achievement[] = [
   {
