@@ -14,6 +14,9 @@ export const env = {
   // NextAuth
   NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || '',
+
+  // MongoDB
+  MONGODB_URI: process.env.MONGODB_URI || '',
 } as const;
 
 /**
@@ -25,6 +28,7 @@ export function validateEnv(): { valid: boolean; missing: string[] } {
     'GOOGLE_CLIENT_ID',
     'GOOGLE_CLIENT_SECRET',
     'NEXTAUTH_SECRET',
+    'MONGODB_URI',
   ] as const;
 
   const missing = required.filter((key) => !env[key]);

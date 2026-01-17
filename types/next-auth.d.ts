@@ -11,6 +11,13 @@ declare module 'next-auth' {
       name?: string | null;
       email?: string | null;
       image?: string | null;
+      // Extended profile fields
+      username?: string;
+      displayName?: string;
+      avatarSeed?: string;
+      level?: number;
+      xp?: number;
+      profileCompletedAt?: Date;
     };
   }
 }
