@@ -1,0 +1,65 @@
+{
+  "name": "sheet_icons_16",
+  "category": "icons",
+  "tileSize": 16,
+  "frames": [
+    {
+      "name": "temp",
+      "x": 0,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "name": "humidity",
+      "x": 16,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "name": "soil",
+      "x": 32,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "name": "water",
+      "x": 48,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "name": "sun",
+      "x": 64,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "name": "heart",
+      "x": 80,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "name": "bell",
+      "x": 96,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "name": "gear",
+      "x": 112,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    }
+  ],
+  "anchor": { "x": 0.5, "y": 0.5 },
+  "animations": {}
+}
