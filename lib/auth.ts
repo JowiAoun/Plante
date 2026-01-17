@@ -23,29 +23,64 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login',
     newUser: '/profile-setup',
   },
+  session: {
+    strategy: 'jwt',
+  },
   callbacks: {
-    async session({ session, user }) {
-      // Add user data to session
-      if (session.user && user) {
-        session.user.id = user.id;
-        
-        // Fetch additional user fields from database
+    async jwt({ token, user, trigger, session }) {
+      // Initial sign in - fetch user data
+      if (user) {
+        token.id = user.id;
         const users = await getUsersCollection();
         const dbUser = await users.findOne({ _id: new ObjectId(user.id) });
         
         if (dbUser) {
-          session.user.username = dbUser.username;
-          session.user.displayName = dbUser.displayName;
-          session.user.avatarSeed = dbUser.avatarSeed;
-          session.user.level = dbUser.level;
-          session.user.xp = dbUser.xp;
-          session.user.profileCompletedAt = dbUser.profileCompletedAt;
+          token.username = dbUser.username;
+          token.displayName = dbUser.displayName;
+          token.avatarSeed = dbUser.avatarSeed;
+          token.level = dbUser.level ?? 1;
+          token.xp = dbUser.xp ?? 0;
+          token.profileCompletedAt = dbUser.profileCompletedAt;
         }
+      }
+
+      // Handle session update (e.g., after profile completion)
+      if (trigger === 'update' && session) {
+        // Refresh user data from database
+        const users = await getUsersCollection();
+        const dbUser = await users.findOne({ _id: new ObjectId(token.id as string) });
+        
+        if (dbUser) {
+          token.username = dbUser.username;
+          token.displayName = dbUser.displayName;
+          token.avatarSeed = dbUser.avatarSeed;
+          token.level = dbUser.level;
+          token.xp = dbUser.xp;
+          token.profileCompletedAt = dbUser.profileCompletedAt;
+        }
+      }
+
+      return token;
+    },
+    async session({ session, token }) {
+      // Add token data to session
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.username = token.username as string | undefined;
+        session.user.displayName = token.displayName as string | undefined;
+        session.user.avatarSeed = token.avatarSeed as string | undefined;
+        session.user.level = token.level as number | undefined;
+        session.user.xp = token.xp as number | undefined;
+        session.user.profileCompletedAt = token.profileCompletedAt as Date | undefined;
       }
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // Redirect new users to profile setup
+      // Allow relative URLs
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`;
+      }
+      // Allow URLs on the same origin
       if (url.startsWith(baseUrl)) {
         return url;
       }
@@ -78,3 +113,4 @@ export const authOptions: NextAuthOptions = {
   },
   secret: env.NEXTAUTH_SECRET,
 };
+

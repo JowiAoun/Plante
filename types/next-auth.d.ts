@@ -20,11 +20,26 @@ declare module 'next-auth' {
       profileCompletedAt?: Date;
     };
   }
+
+  interface User {
+    username?: string;
+    displayName?: string;
+    avatarSeed?: string;
+    level?: number;
+    xp?: number;
+    profileCompletedAt?: Date;
+  }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT {
-    accessToken?: string;
     id?: string;
+    username?: string;
+    displayName?: string;
+    avatarSeed?: string;
+    level?: number;
+    xp?: number;
+    profileCompletedAt?: Date;
   }
 }
+

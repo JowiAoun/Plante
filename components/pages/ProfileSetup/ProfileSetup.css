@@ -121,3 +121,31 @@
   color: var(--color-text-muted);
   margin: 0 0 24px 0;
 }
+
+.profile-setup__loading {
+  font-family: var(--font-game);
+  font-size: 14px;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 48px;
+}
+
+.profile-setup__username-wrapper {
+  position: relative;
+}
+
+.profile-setup__checking {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+.profile-setup__available {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--color-healthy);
+  margin-top: 4px;
+}

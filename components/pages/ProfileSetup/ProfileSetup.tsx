@@ -5,7 +5,9 @@
  * Profile customization form shown after registration
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { PixelAvatar } from '@/components/PixelAvatar';
 import { PixelInput } from '@/components/PixelInput';
@@ -28,11 +30,54 @@ const generateRandomSeed = (): string => {
  * ProfileSetup - Profile customization form
  */
 export const ProfileSetup: React.FC = () => {
+  const { data: session, update: updateSession } = useSession();
+  const router = useRouter();
+  
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [avatarSeed, setAvatarSeed] = useState(generateRandomSeed());
-  const [isComplete, setIsComplete] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [usernameError, setUsernameError] = useState('');
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+
+  // Pre-fill display name from Google profile
+  useEffect(() => {
+    if (session?.user?.name && !displayName) {
+      setDisplayName(session.user.name);
+    }
+  }, [session?.user?.name, displayName]);
+
+  // Debounced username availability check
+  useEffect(() => {
+    if (!username || username.length < 3) {
+      setUsernameAvailable(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsCheckingUsername(true);
+      try {
+        const res = await fetch(`/api/auth/check-username?username=${encodeURIComponent(username)}`);
+        const data = await res.json();
+        
+        if (data.available) {
+          setUsernameAvailable(true);
+          setUsernameError('');
+        } else {
+          setUsernameAvailable(false);
+          setUsernameError(data.message || 'Username not available');
+        }
+      } catch {
+        setUsernameError('Error checking username');
+        setUsernameAvailable(null);
+      } finally {
+        setIsCheckingUsername(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [username]);
 
   const validateUsername = useCallback((value: string) => {
     if (value.length < 3) {
@@ -41,22 +86,25 @@ export const ProfileSetup: React.FC = () => {
     if (value.length > 20) {
       return 'Username must be 20 characters or less';
     }
-    if (!/^[a-zA-Z0-9_]+$/.test(value)) {
+    if (!/^[a-z0-9_]+$/.test(value.toLowerCase())) {
       return 'Only letters, numbers, and underscores allowed';
     }
     return '';
   }, []);
 
   const handleUsernameChange = (value: string) => {
-    setUsername(value);
-    setUsernameError(value ? validateUsername(value) : '');
+    const lowerValue = value.toLowerCase();
+    setUsername(lowerValue);
+    setUsernameAvailable(null);
+    const error = lowerValue ? validateUsername(lowerValue) : '';
+    setUsernameError(error);
   };
 
   const handleRandomize = () => {
     setAvatarSeed(generateRandomSeed());
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const error = validateUsername(username);
@@ -65,39 +113,49 @@ export const ProfileSetup: React.FC = () => {
       return;
     }
 
-    // For now, just show success (no persistence per user request)
-    console.log('Profile setup complete:', {
-      username,
-      displayName: displayName || username,
-      avatarSeed,
-    });
-    
-    setIsComplete(true);
+    if (!usernameAvailable) {
+      setUsernameError('Please choose an available username');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch('/api/auth/complete-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username,
+          displayName: displayName || username,
+          avatarSeed,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setUsernameError(data.error || 'Failed to complete profile');
+        return;
+      }
+
+      // Update session to refresh JWT token
+      await updateSession();
+
+      // Redirect to dashboard
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Profile setup error:', error);
+      setUsernameError('An error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  if (isComplete) {
+  // Show loading while session loads
+  if (!session) {
     return (
       <div className="profile-setup">
-        <motion.div
-          className="profile-setup__card nes-container is-dark"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="profile-setup__success">
-            <div className="profile-setup__success-icon">🎉</div>
-            <h2 className="profile-setup__success-title">Welcome, {displayName || username}!</h2>
-            <p className="profile-setup__success-message">
-              Your profile is all set. Ready to start farming?
-            </p>
-            <ActionButton
-              label="Go to Dashboard"
-              variant="success"
-              icon="🌱"
-              onClick={() => window.location.href = '/dashboard'}
-            />
-          </div>
-        </motion.div>
+        <div className="profile-setup__loading">Loading...</div>
       </div>
     );
   }
@@ -148,15 +206,23 @@ export const ProfileSetup: React.FC = () => {
           </div>
 
           {/* Username Input */}
-          <PixelInput
-            label="Username"
-            placeholder="farmer_joe"
-            value={username}
-            onChange={handleUsernameChange}
-            error={usernameError}
-            icon="👤"
-            maxLength={20}
-          />
+          <div className="profile-setup__username-wrapper">
+            <PixelInput
+              label="Username"
+              placeholder="farmer_joe"
+              value={username}
+              onChange={handleUsernameChange}
+              error={usernameError}
+              icon="👤"
+              maxLength={20}
+            />
+            {isCheckingUsername && (
+              <span className="profile-setup__checking">Checking...</span>
+            )}
+            {!isCheckingUsername && usernameAvailable === true && !usernameError && (
+              <span className="profile-setup__available">✓ Available</span>
+            )}
+          </div>
 
           {/* Display Name Input */}
           <PixelInput
@@ -172,11 +238,11 @@ export const ProfileSetup: React.FC = () => {
           {/* Submit Button */}
           <div className="profile-setup__submit-btn">
             <ActionButton
-              label="Complete Setup"
+              label={isSubmitting ? 'Saving...' : 'Complete Setup'}
               variant="success"
               icon="✓"
               fullWidth
-              disabled={!username || !!usernameError}
+              disabled={!username || !!usernameError || !usernameAvailable || isSubmitting}
             />
           </div>
         </form>
@@ -186,3 +252,4 @@ export const ProfileSetup: React.FC = () => {
 };
 
 export default ProfileSetup;
+

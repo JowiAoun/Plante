@@ -96,3 +96,11 @@
 .login__link:hover {
   text-decoration: underline;
 }
+
+.login__loading {
+  font-family: var(--font-game);
+  font-size: 14px;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 48px;
+}

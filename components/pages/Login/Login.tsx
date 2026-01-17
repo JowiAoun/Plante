@@ -5,9 +5,10 @@
  * Pixel-themed login with Google OAuth
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import './Login.css';
 
@@ -15,9 +16,41 @@ import './Login.css';
  * Login - Authentication page with Google sign-in
  */
 export const Login: React.FC = () => {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user) {
+      if (session.user.profileCompletedAt) {
+        router.push('/dashboard');
+      } else {
+        router.push('/profile-setup');
+      }
+    }
+  }, [session, status, router]);
+
   const handleGoogleSignIn = () => {
     signIn('google', { callbackUrl: '/profile-setup' });
   };
+
+  // Show loading while checking session
+  if (status === 'loading') {
+    return (
+      <div className="login">
+        <div className="login__loading">Loading...</div>
+      </div>
+    );
+  }
+
+  // Don't render if authenticated (will redirect)
+  if (status === 'authenticated') {
+    return (
+      <div className="login">
+        <div className="login__loading">Redirecting...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="login">
@@ -62,3 +95,4 @@ export const Login: React.FC = () => {
 };
 
 export default Login;
+
