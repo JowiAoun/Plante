@@ -23,3 +23,5 @@ export { LevelUpModal } from './LevelUpModal';
 
 // Utility
 export { PixelModal } from './PixelModal';
+export { PixelInput } from './PixelInput';
+export { PixelAvatar } from './PixelAvatar';
