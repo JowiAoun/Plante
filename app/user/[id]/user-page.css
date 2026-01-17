@@ -1,0 +1,15 @@
+/* User Page Styles */
+.user-page__back {
+  font-family: var(--font-game);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 12px;
+  display: inline-block;
+  padding: 8px;
+  transition: color 0.2s;
+}
+
+.user-page__back:hover {
+  color: var(--color-accent);
+  text-decoration: none;
+}

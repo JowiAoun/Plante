@@ -4,14 +4,10 @@ import React, { use } from 'react'
 import Link from 'next/link'
 import { Profile } from '@/components/pages/Profile/Profile'
 import { mockUsers } from '@/mocks/data'
-
-interface UserPageProps {
-  params: Promise<{ id: string }>
-}
-
 import { AppShell } from '@/components/AppShell'
 import { mockNotifications } from '@/mocks/data'
 import { useRouter, useSearchParams } from 'next/navigation'
+import './user-page.css'
 
 interface UserPageProps {
   params: Promise<{ id: string }>
@@ -82,14 +78,7 @@ export default function UserPage({ params }: UserPageProps) {
     >
       <div className="user-profile-page" style={{ padding: '20px' }}>
          <div style={{ maxWidth: '600px', margin: '0 auto 20px auto' }}>
-            <Link href={backLink} style={{ 
-              fontFamily: 'var(--font-game)', 
-              color: 'var(--color-text-muted)', 
-              textDecoration: 'none',
-              fontSize: '12px',
-              display: 'inline-block',
-              padding: '8px'
-            }}>
+            <Link href={backLink} className="user-page__back">
               ← {backLabel}
             </Link>
          </div>
@@ -98,4 +87,3 @@ export default function UserPage({ params }: UserPageProps) {
     </AppShell>
   )
 }
-

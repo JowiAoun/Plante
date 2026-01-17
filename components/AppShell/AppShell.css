@@ -82,17 +82,19 @@
   transition: all 0.1s;
 }
 
-.app-shell__sidebar-link:hover {
+.app-shell__sidebar-link:not(.app-shell__sidebar-link--active):hover {
   color: var(--color-text);
   background-color: rgba(255, 255, 255, 0.05);
   border-color: var(--color-border);
   text-decoration: none;
 }
 
-.app-shell__sidebar-link--active {
+.app-shell__sidebar-link--active,
+.app-shell__sidebar-link--active:hover {
   color: var(--color-primary);
   background-color: rgba(41, 173, 255, 0.15);
   border-color: var(--color-primary);
+  text-decoration: none;
 }
 
 .app-shell__sidebar-link:focus-visible {

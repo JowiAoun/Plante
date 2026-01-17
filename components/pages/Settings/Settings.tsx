@@ -69,19 +69,42 @@ export const Settings: React.FC = () => {
         <h2 className="settings__section-title">Notifications</h2>
         <div className="settings__option">
           <label className="settings__label">
-            <input type="checkbox" className="nes-checkbox is-dark" defaultChecked />
+            <input 
+              type="checkbox" 
+              className="nes-checkbox is-dark" 
+              defaultChecked 
+              onChange={(e) => {
+                const status = e.target.checked ? 'enabled' : 'disabled';
+                setToast(`Push notifications ${status}`);
+              }}
+            />
             <span>Push notifications</span>
           </label>
         </div>
         <div className="settings__option">
           <label className="settings__label">
-            <input type="checkbox" className="nes-checkbox is-dark" defaultChecked />
+            <input 
+              type="checkbox" 
+              className="nes-checkbox is-dark" 
+              defaultChecked 
+              onChange={(e) => {
+                const status = e.target.checked ? 'enabled' : 'disabled';
+                setToast(`Email alerts ${status}`);
+              }}
+            />
             <span>Email alerts</span>
           </label>
         </div>
         <div className="settings__option">
           <label className="settings__label">
-            <input type="checkbox" className="nes-checkbox is-dark" />
+            <input 
+              type="checkbox" 
+              className="nes-checkbox is-dark" 
+              onChange={(e) => {
+                const status = e.target.checked ? 'enabled' : 'disabled';
+                setToast(`Sound effects ${status}`);
+              }}
+            />
             <span>Sound effects</span>
           </label>
         </div>
