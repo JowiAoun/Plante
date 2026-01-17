@@ -111,6 +111,13 @@ export const Profile: React.FC<ProfileProps> = ({
           label="Visit Museum"
           variant="secondary"
           icon="🏛️"
+          onClick={() => window.location.href = '/museum'}
+        />
+        <ActionButton
+          label="Visit Farm"
+          variant="primary"
+          icon="🌾"
+          onClick={() => window.location.href = `/farms/explore/${user.id}`}
         />
         {isOwnProfile && (
           <ActionButton
