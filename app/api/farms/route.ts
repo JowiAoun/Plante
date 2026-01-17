@@ -101,6 +101,7 @@ export async function POST(request: NextRequest) {
         temperature: { min: 15, max: 30 },
         humidity: { min: 40, max: 80 },
         soilMoisture: { min: 30, max: 70 },
+        light: { min: 200, max: 10000 },
       },
       deviceId: body.deviceId || undefined,
       lastSeen: now,

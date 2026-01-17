@@ -107,6 +107,7 @@ export interface DbFarm {
     temperature: { min: number; max: number };
     humidity: { min: number; max: number };
     soilMoisture: { min: number; max: number };
+    light?: { min: number; max: number };
   };
 
   // Device info
