@@ -4,6 +4,7 @@
  */
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { PixelAvatar } from '@/components/PixelAvatar';
 import { mockUsers } from '@/mocks/data';
 import './Leaderboard.css';
@@ -12,9 +13,15 @@ import './Leaderboard.css';
  * Leaderboard - Rankings page
  */
 export const Leaderboard: React.FC = () => {
+  const router = useRouter();
+  
   // Sort users by XP
   const rankedUsers = [...mockUsers].sort((a, b) => b.xp - a.xp);
   const topThree = rankedUsers.slice(0, 3);
+
+  const handleRowClick = (userId: string) => {
+    router.push(`/user/${userId}`);
+  };
 
   return (
     <div className="leaderboard">
@@ -76,19 +83,21 @@ export const Leaderboard: React.FC = () => {
           </thead>
           <tbody>
             {rankedUsers.map((user, index) => (
-              <tr key={user.id} className={index < 3 ? 'leaderboard__row--top' : ''}>
+              <tr 
+                key={user.id} 
+                className={`leaderboard__row ${index < 3 ? 'leaderboard__row--top' : ''}`}
+                onClick={() => handleRowClick(user.id)}
+              >
                 <td className="leaderboard__rank">
                   {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
                 </td>
                 <td className="leaderboard__user">
-                  <Link href={`/user/${user.id}`} className="leaderboard__link-row">
-                    <div className="leaderboard__user-wrapper">
-                      <div className="leaderboard__user-avatar">
-                        <PixelAvatar username={user.username} seed={user.avatarSeed} size="small" />
-                      </div>
-                      <span className="leaderboard__user-name">{user.displayName}</span>
+                  <div className="leaderboard__user-wrapper">
+                    <div className="leaderboard__user-avatar">
+                      <PixelAvatar username={user.username} seed={user.avatarSeed} size="small" />
                     </div>
-                  </Link>
+                    <span className="leaderboard__user-name">{user.displayName}</span>
+                  </div>
                 </td>
                 <td className="leaderboard__level">Lv.{user.level}</td>
                 <td className="leaderboard__xp">{user.xp.toLocaleString()}</td>

@@ -139,7 +139,8 @@
 }
 
 .leaderboard__table {
-  width: 100%;
+  width: 98%;
+  margin: 0 auto;
   border-collapse: collapse;
   font-family: var(--font-ui);
   font-size: 12px;
@@ -200,5 +201,47 @@
 .leaderboard__xp {
   font-family: var(--font-game);
   font-size: 10px;
+  color: var(--color-accent);
+}
+
+/* Link styles for Podium */
+.leaderboard__link {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.2s ease;
+  width: 100%;
+}
+
+.leaderboard__link:hover {
+  transform: scale(1.05);
+  text-decoration: none;
+}
+
+.leaderboard__link:hover .leaderboard__podium-name {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+/* Interactive Table Rows */
+.leaderboard__table tbody tr {
+  cursor: var(--cursor-pointer);
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.leaderboard__table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  transform: scale(1.01);
+}
+
+.leaderboard__table tbody tr:active {
+  transform: scale(0.99);
+}
+
+/* Ensure no text decoration on row hover */
+.leaderboard__table tbody tr:hover .leaderboard__user-name {
+  text-decoration: none;
   color: var(--color-accent);
 }
