@@ -34,6 +34,13 @@ export interface Farm {
     temp: SensorReading;
     humidity: SensorReading;
     soil: SensorReading;
+    light?: SensorReading;
+  };
+  thresholds?: {
+    temperature: { min: number; max: number };
+    humidity: { min: number; max: number };
+    soilMoisture: { min: number; max: number };
+    light?: { min: number; max: number };
   };
   lastSeen: string;
 }

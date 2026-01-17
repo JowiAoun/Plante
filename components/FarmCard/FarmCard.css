@@ -1,6 +1,6 @@
 /**
  * FarmCard Styles
- * Pixel-art styled farm tile component
+ * Pixel-art styled farm tile component with sensor health indicators
  */
 
 .farm-card {
@@ -10,6 +10,8 @@
   transition: transform 0.1s steps(2);
   background-color: var(--color-surface);
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Hover state interactions - preserve border color */
@@ -104,6 +106,7 @@
   display: flex;
   justify-content: space-between;
   gap: 4px;
+  flex-wrap: wrap;
 }
 
 .farm-card__sensor {
@@ -111,6 +114,29 @@
   flex-direction: column;
   align-items: center;
   font-size: 10px;
+  padding: 4px;
+  border-radius: 4px;
+  min-width: 40px;
+  transition: background-color 0.2s ease;
+}
+
+/* Sensor health indicators */
+.farm-card__sensor.sensor--healthy {
+  background-color: rgba(0, 200, 83, 0.15);
+}
+
+.farm-card__sensor.sensor--warning {
+  background-color: rgba(255, 193, 7, 0.2);
+}
+
+.farm-card__sensor.sensor--critical {
+  background-color: rgba(244, 67, 54, 0.2);
+  animation: sensor-pulse 1s infinite;
+}
+
+@keyframes sensor-pulse {
+  0%, 100% { background-color: rgba(244, 67, 54, 0.2); }
+  50% { background-color: rgba(244, 67, 54, 0.35); }
 }
 
 .farm-card__sensor-icon {
@@ -123,4 +149,74 @@
   font-size: 8px;
   color: var(--color-text-muted);
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.farm-card__sensor-unit {
+  font-size: 6px;
+  opacity: 0.8;
+}
+
+.farm-card__sensor-trend {
+  font-size: 8px;
+  font-weight: bold;
+}
+
+.farm-card__sensor.sensor--healthy .farm-card__sensor-trend {
+  color: var(--color-healthy);
+}
+
+.farm-card__sensor.sensor--warning .farm-card__sensor-trend {
+  color: var(--color-warning);
+}
+
+.farm-card__sensor.sensor--critical .farm-card__sensor-trend {
+  color: var(--color-critical);
+}
+
+/* Footer with sync button and last seen */
+.farm-card__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: var(--grid-unit);
+  border-top: 1px solid var(--color-border);
+}
+
+.farm-card__last-seen {
+  font-family: var(--font-game);
+  font-size: 8px;
+  color: var(--color-text-muted);
+}
+
+.farm-card__sync-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.farm-card__sync-btn:hover:not(:disabled) {
+  background-color: var(--color-surface-hover);
+  transform: scale(1.1);
+}
+
+.farm-card__sync-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.farm-card__sync-btn.syncing {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
