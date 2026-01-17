@@ -1,0 +1,85 @@
+.level-up-modal {
+  text-align: center;
+}
+
+.level-up-modal__celebration {
+  margin-bottom: 16px;
+}
+
+.level-up-modal__confetti {
+  font-size: 32px;
+  animation: confetti-bounce 0.5s ease infinite alternate;
+}
+
+@keyframes confetti-bounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-8px); }
+}
+
+.level-up-modal__level {
+  margin-bottom: 24px;
+}
+
+.level-up-modal__label {
+  display: block;
+  font-family: var(--font-game);
+  font-size: 12px;
+  color: var(--color-accent);
+  margin-bottom: 8px;
+  animation: pulse-text 0.5s ease infinite alternate;
+}
+
+@keyframes pulse-text {
+  from { opacity: 0.8; }
+  to { opacity: 1; }
+}
+
+.level-up-modal__number {
+  display: block;
+  font-family: var(--font-game);
+  font-size: 48px;
+  color: var(--color-accent);
+  text-shadow: 4px 4px 0 var(--color-dark-green);
+}
+
+.level-up-modal__rewards {
+  margin-bottom: 24px;
+}
+
+.level-up-modal__rewards-title {
+  font-family: var(--font-game);
+  font-size: 10px;
+  color: var(--color-text);
+  margin: 0 0 12px 0;
+}
+
+.level-up-modal__rewards-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.level-up-modal__reward {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  margin-bottom: 8px;
+}
+
+.level-up-modal__reward-icon {
+  font-size: 20px;
+}
+
+.level-up-modal__reward-name {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--color-text);
+}
+
+.level-up-modal__action {
+  margin-top: 16px;
+}
