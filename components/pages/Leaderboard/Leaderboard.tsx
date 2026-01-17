@@ -5,8 +5,10 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { PixelAvatar } from '@/components/PixelAvatar';
 import { mockUsers } from '@/mocks/data';
+import type { User } from '@/types';
 import './Leaderboard.css';
 
 /**
@@ -14,14 +16,53 @@ import './Leaderboard.css';
  */
 export const Leaderboard: React.FC = () => {
   const router = useRouter();
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch('/api/leaderboard?limit=50');
+        if (res.ok) {
+          const realUsers = await res.json();
+          // Merge mock users and real users
+          // Ensure we don't duplicate if we happen to have clashing IDs (unlikely with mocks)
+          const allUsers = [...mockUsers, ...realUsers];
+          
+          // Sort by XP descending (highest first)
+          // Then by username for stability
+          allUsers.sort((a, b) => {
+             if (b.xp !== a.xp) return b.xp - a.xp;
+             return a.username.localeCompare(b.username);
+          });
+          
+          setUsers(allUsers);
+        } else {
+            // Fallback to mocks on error
+            setUsers([...mockUsers].sort((a, b) => b.xp - a.xp));
+        }
+      } catch (error) {
+        console.error('Failed to fetch leaderboard:', error);
+        setUsers([...mockUsers].sort((a, b) => b.xp - a.xp));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
   
-  // Sort users by XP
-  const rankedUsers = [...mockUsers].sort((a, b) => b.xp - a.xp);
+  const rankedUsers = users;
   const topThree = rankedUsers.slice(0, 3);
+  const restUsers = rankedUsers.slice(3);
 
   const handleRowClick = (userId: string) => {
     router.push(`/user/${userId}?from=leaderboard`);
   };
+
+  if (loading) {
+    return <div className="leaderboard"><div className="leaderboard__loading">Loading rankings...</div></div>;
+  }
 
   return (
     <div className="leaderboard">
@@ -30,45 +71,53 @@ export const Leaderboard: React.FC = () => {
         <p className="leaderboard__subtitle">Top farmers this season</p>
       </header>
 
-      {/* Podium */}
-      <div className="leaderboard__podium">
-        {/* Second place */}
-        <div className="leaderboard__podium-spot leaderboard__podium-spot--2">
-          <Link href={`/user/${topThree[1]?.id}?from=leaderboard`} className="leaderboard__link">
-            <div className="leaderboard__podium-avatar leaderboard__podium-avatar--silver">
-               <PixelAvatar username={topThree[1]?.username} seed={topThree[1]?.avatarSeed} size="medium" />
+      {/* Podium - only show if we have enough users */}
+      {topThree.length > 0 && (
+        <div className="leaderboard__podium">
+            {/* Second place */}
+            {topThree[1] && (
+            <div className="leaderboard__podium-spot leaderboard__podium-spot--2">
+            <Link href={`/user/${topThree[1].id}?from=leaderboard`} className="leaderboard__link">
+                <div className="leaderboard__podium-avatar leaderboard__podium-avatar--silver">
+                <PixelAvatar username={topThree[1].username} seed={topThree[1].avatarSeed} size="medium" />
+                </div>
+                <span className="leaderboard__podium-name">{topThree[1].displayName}</span>
+            </Link>
+            <span className="leaderboard__podium-xp">{topThree[1].xp} XP</span>
+            <div className="leaderboard__podium-stand leaderboard__podium-stand--silver">2</div>
             </div>
-            <span className="leaderboard__podium-name">{topThree[1]?.displayName}</span>
-          </Link>
-          <span className="leaderboard__podium-xp">{topThree[1]?.xp} XP</span>
-          <div className="leaderboard__podium-stand leaderboard__podium-stand--silver">2</div>
-        </div>
+            )}
 
-        {/* First place */}
-        <div className="leaderboard__podium-spot leaderboard__podium-spot--1">
-          <span className="leaderboard__crown">👑</span>
-          <Link href={`/user/${topThree[0]?.id}?from=leaderboard`} className="leaderboard__link">
-            <div className="leaderboard__podium-avatar leaderboard__podium-avatar--gold">
-               <PixelAvatar username={topThree[0]?.username} seed={topThree[0]?.avatarSeed} size="medium" />
+            {/* First place */}
+            {topThree[0] && (
+            <div className="leaderboard__podium-spot leaderboard__podium-spot--1">
+            <span className="leaderboard__crown">👑</span>
+            <Link href={`/user/${topThree[0].id}?from=leaderboard`} className="leaderboard__link">
+                <div className="leaderboard__podium-avatar leaderboard__podium-avatar--gold">
+                <PixelAvatar username={topThree[0].username} seed={topThree[0].avatarSeed} size="medium" />
+                </div>
+                <span className="leaderboard__podium-name">{topThree[0].displayName}</span>
+            </Link>
+            <span className="leaderboard__podium-xp">{topThree[0].xp} XP</span>
+            <div className="leaderboard__podium-stand leaderboard__podium-stand--gold">1</div>
             </div>
-            <span className="leaderboard__podium-name">{topThree[0]?.displayName}</span>
-          </Link>
-          <span className="leaderboard__podium-xp">{topThree[0]?.xp} XP</span>
-          <div className="leaderboard__podium-stand leaderboard__podium-stand--gold">1</div>
-        </div>
+            )}
 
-        {/* Third place */}
-        <div className="leaderboard__podium-spot leaderboard__podium-spot--3">
-          <Link href={`/user/${topThree[2]?.id}?from=leaderboard`} className="leaderboard__link">
-            <div className="leaderboard__podium-avatar leaderboard__podium-avatar--bronze">
-               <PixelAvatar username={topThree[2]?.username} seed={topThree[2]?.avatarSeed} size="medium" />
+            {/* Third place */}
+            {topThree[2] && (
+            <div className="leaderboard__podium-spot leaderboard__podium-spot--3">
+            <Link href={`/user/${topThree[2].id}?from=leaderboard`} className="leaderboard__link">
+                <div className="leaderboard__podium-avatar leaderboard__podium-avatar--bronze">
+                <PixelAvatar username={topThree[2].username} seed={topThree[2].avatarSeed} size="medium" />
+                </div>
+                <span className="leaderboard__podium-name">{topThree[2].displayName}</span>
+            </Link>
+            <span className="leaderboard__podium-xp">{topThree[2]?.xp} XP</span>
+            <div className="leaderboard__podium-stand leaderboard__podium-stand--bronze">3</div>
             </div>
-            <span className="leaderboard__podium-name">{topThree[2]?.displayName}</span>
-          </Link>
-          <span className="leaderboard__podium-xp">{topThree[2]?.xp} XP</span>
-          <div className="leaderboard__podium-stand leaderboard__podium-stand--bronze">3</div>
+            )}
         </div>
-      </div>
+      )}
 
       {/* Full Rankings */}
       <div className="leaderboard__list">
@@ -82,7 +131,7 @@ export const Leaderboard: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {rankedUsers.map((user, index) => (
+            {rankedUsers.map((user: User, index: number) => (
               <tr 
                 key={user.id} 
                 className={`leaderboard__row ${index < 3 ? 'leaderboard__row--top' : ''}`}
