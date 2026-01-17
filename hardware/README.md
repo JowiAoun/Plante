@@ -145,6 +145,19 @@ Do NOT use these pins when HAT is installed:
 hardware/
 ├── README.md
 ├── requirements.txt
+├── plante-api.service      # systemd service for auto-start
+├── api/
+│   ├── main.py             # FastAPI entry point
+│   ├── .env.example        # Environment configuration
+│   ├── models/
+│   │   └── schemas.py      # Pydantic response models
+│   ├── routers/
+│   │   ├── health.py       # Health check endpoint
+│   │   ├── sensors.py      # Sensor reading endpoints
+│   │   └── camera.py       # Camera capture endpoints
+│   └── services/
+│       ├── sensor_service.py   # Sensor abstraction layer
+│       └── camera_service.py   # Camera abstraction layer
 ├── motors/
 │   └── servo.py
 └── sensors/
@@ -153,3 +166,92 @@ hardware/
     ├── soil_moisture.py
     └── camera.py
 ```
+
+## API Server
+
+FastAPI server exposing sensor readings and camera functionality.
+
+### Setup
+
+```bash
+cd ~/Plante/hardware
+source venv/bin/activate
+pip install -r requirements.txt
+cp api/.env.example api/.env
+```
+
+### Running the Server
+
+```bash
+# Development (with auto-reload)
+cd ~/Plante/hardware
+source venv/bin/activate
+python -m api.main
+
+# Or directly with uvicorn
+uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### Running as a Service
+
+```bash
+# Copy service file
+sudo cp plante-api.service /etc/systemd/system/
+
+# Enable and start
+sudo systemctl daemon-reload
+sudo systemctl enable plante-api
+sudo systemctl start plante-api
+
+# Check status
+sudo systemctl status plante-api
+```
+
+### API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | API info |
+| GET | `/health` | Health check with uptime and sensor availability |
+| GET | `/sensors` | All sensor readings |
+| GET | `/sensors/temperature` | Temperature and humidity from DHT11 |
+| GET | `/sensors/light` | Light intensity from BH1750 |
+| GET | `/sensors/soil` | Soil moisture percentage |
+| GET | `/camera/capture` | Capture a new photo |
+| GET | `/camera/latest` | Get latest photo metadata |
+| GET | `/camera/latest/file` | Get latest photo as JPEG |
+
+### Example Response (GET /sensors)
+
+```json
+{
+  "timestamp": "2025-01-17T23:10:00Z",
+  "temperature": { "value": 22.5, "unit": "celsius" },
+  "humidity": { "value": 65.0, "unit": "percent" },
+  "light": { "value": 450.5, "unit": "lux", "description": "Normal indoor" },
+  "soil_moisture": { "value": 45.2, "unit": "percent" },
+  "status": "ok",
+  "errors": []
+}
+```
+
+### Configuration
+
+Environment variables in `api/.env`:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `API_PORT` | 8000 | Server port |
+| `API_HOST` | 0.0.0.0 | Server host |
+| `API_KEY` | _(empty)_ | Optional API key for authentication |
+| `CORS_ORIGINS` | * | Allowed CORS origins (comma-separated) |
+| `POLL_INTERVAL` | 30 | Sensor cache interval in seconds |
+
+### Authentication
+
+If `API_KEY` is set, all sensor and camera endpoints require the `X-API-Key` header:
+
+```bash
+curl -H "X-API-Key: your-secret-key" http://raspberrypi.local:8000/sensors
+```
+

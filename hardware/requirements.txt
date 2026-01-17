@@ -9,3 +9,15 @@ adafruit-circuitpython-dht
 
 # I2C for BH1750 light sensor
 smbus2
+
+# SPI for Waveshare AD/DA HAT
+spidev
+
+# Camera
+picamera2
+
+# FastAPI server
+fastapi
+uvicorn[standard]
+pydantic
+python-dotenv

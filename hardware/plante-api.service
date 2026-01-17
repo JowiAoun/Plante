@@ -1,0 +1,15 @@
+[Unit]
+Description=Plante Sensor API
+After=network.target
+
+[Service]
+Type=simple
+User=jeremyfriesen
+WorkingDirectory=/home/jeremyfriesen/Plante/hardware
+Environment="PATH=/home/jeremyfriesen/Plante/hardware/venv/bin"
+ExecStart=/home/jeremyfriesen/Plante/hardware/venv/bin/uvicorn api.main:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
