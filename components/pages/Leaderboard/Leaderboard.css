@@ -171,9 +171,7 @@
   width: 40px;
 }
 
-.leaderboard__user {
-  /* Keep as standard table cell */
-}
+/* .leaderboard__user removed */
 
 .leaderboard__user-wrapper {
   display: flex;

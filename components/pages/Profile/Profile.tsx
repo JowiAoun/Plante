@@ -18,13 +18,16 @@ import './Profile.css';
 export interface ProfileProps {
   /** User to display (defaults to mock user) */
   user?: User;
+  /** Whether this is the current user's profile */
+  isOwnProfile?: boolean;
 }
 
 /**
  * Profile - User profile page
  */
 export const Profile: React.FC<ProfileProps> = ({ 
-  user = mockUsers[0] 
+  user = mockUsers[0],
+  isOwnProfile = true
 }) => {
   const [showLevelUp, setShowLevelUp] = useState(false);
 
@@ -109,12 +112,14 @@ export const Profile: React.FC<ProfileProps> = ({
           variant="secondary"
           icon="🏛️"
         />
-        <ActionButton
-          label="Demo Level Up"
-          variant="success"
-          icon="⬆️"
-          onClick={() => setShowLevelUp(true)}
-        />
+        {isOwnProfile && (
+          <ActionButton
+            label="Demo Level Up"
+            variant="success"
+            icon="⬆️"
+            onClick={() => setShowLevelUp(true)}
+          />
+        )}
       </section>
 
       {/* Level Up Modal */}

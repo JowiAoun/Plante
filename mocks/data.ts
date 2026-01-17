@@ -8,7 +8,7 @@ import type { User, Farm, Achievement, Notification, Exhibit } from '../types';
 // Mock Users
 export const mockUsers: User[] = [
   {
-    id: 'user-001',
+    id: '8f7a2d',
     username: 'green_thumb',
     displayName: 'Green Thumb Gary',
     avatarSeed: 'gary2024',
@@ -16,7 +16,7 @@ export const mockUsers: User[] = [
     xp: 4850,
   },
   {
-    id: 'user-002',
+    id: '3c9e1b',
     username: 'plant_queen',
     displayName: 'Plant Queen Pam',
     avatarSeed: 'pam2024',
@@ -24,7 +24,7 @@ export const mockUsers: User[] = [
     xp: 8200,
   },
   {
-    id: 'user-003',
+    id: '5a4d2f',
     username: 'seedling_sam',
     displayName: 'Seedling Sam',
     avatarSeed: 'sam2024',
@@ -32,7 +32,7 @@ export const mockUsers: User[] = [
     xp: 1200,
   },
   {
-    id: 'user-004',
+    id: '7b6c8e',
     username: 'harvest_hero',
     displayName: 'Harvest Hero Helen',
     avatarSeed: 'helen2024',
@@ -46,7 +46,7 @@ export const mockFarms: Farm[] = [
   {
     id: 'a8x9de',
     name: 'Tomato Paradise',
-    ownerId: 'user-001',
+    ownerId: '8f7a2d',
     status: 'healthy',
     thumbnailUrl: '/sprites/farm_tomato_32.png',
     sensors: {
@@ -59,7 +59,7 @@ export const mockFarms: Farm[] = [
   {
     id: 'b7y2cf',
     name: 'Herb Haven',
-    ownerId: 'user-001',
+    ownerId: '8f7a2d',
     status: 'warning',
     thumbnailUrl: '/sprites/farm_herb_32.png',
     sensors: {
@@ -72,7 +72,7 @@ export const mockFarms: Farm[] = [
   {
     id: 'c5z4ab',
     name: 'Pepper Palace',
-    ownerId: 'user-002',
+    ownerId: '3c9e1b',
     status: 'critical',
     thumbnailUrl: '/sprites/farm_pepper_32.png',
     sensors: {
@@ -85,7 +85,7 @@ export const mockFarms: Farm[] = [
   {
     id: 'd3w1gh',
     name: 'Succulent Sanctuary',
-    ownerId: 'user-003',
+    ownerId: '5a4d2f',
     status: 'healthy',
     thumbnailUrl: '/sprites/farm_succulent_32.png',
     sensors: {
@@ -105,7 +105,7 @@ export const mockAchievements: Achievement[] = [
     description: 'Plant your first seed',
     icon: 'seedling',
     rarity: 'common',
-    unlockedBy: ['user-001', 'user-002', 'user-003', 'user-004'],
+    unlockedBy: ['8f7a2d', '3c9e1b', '5a4d2f', '7b6c8e'],
     unlockedAt: '2024-01-15T10:00:00Z',
   },
   {
@@ -114,7 +114,7 @@ export const mockAchievements: Achievement[] = [
     description: 'Keep plants healthy for 7 days straight',
     icon: 'streak',
     rarity: 'rare',
-    unlockedBy: ['user-001', 'user-002'],
+    unlockedBy: ['8f7a2d', '3c9e1b'],
     unlockedAt: '2024-02-01T14:30:00Z',
   },
   {
@@ -123,7 +123,7 @@ export const mockAchievements: Achievement[] = [
     description: 'Complete 10 successful harvests',
     icon: 'harvest',
     rarity: 'epic',
-    unlockedBy: ['user-004'],
+    unlockedBy: ['7b6c8e'],
     unlockedAt: '2024-03-10T09:15:00Z',
   },
   {
@@ -184,7 +184,7 @@ export const mockNotifications: Notification[] = [
 export const mockExhibits: Exhibit[] = [
   {
     id: 'exhibit-001',
-    ownerId: 'user-001',
+    ownerId: '8f7a2d',
     title: 'Champion Tomato 2024',
     images: [
       { url: '/timelapse/tomato_day1.png', ts: '2024-01-01T08:00:00Z' },
@@ -201,7 +201,7 @@ export const mockExhibits: Exhibit[] = [
   },
   {
     id: 'exhibit-002',
-    ownerId: 'user-002',
+    ownerId: '3c9e1b',
     title: 'Perfect Basil Harvest',
     images: [
       { url: '/timelapse/basil_week1.png', ts: '2024-02-01T08:00:00Z' },
