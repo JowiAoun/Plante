@@ -9,11 +9,13 @@ export { TopBar } from './TopBar';
 // Core widgets
 export { FarmCard } from './FarmCard';
 export { ActionButton } from './ActionButton';
+export { AnimatedButton } from './AnimatedButton';
 export { SensorBadge } from './SensorBadge';
 
 // Notifications
 export { NotificationBell } from './NotificationBell';
 export { Toast, ToastContainer } from './Toast';
+export { AchievementToast } from './AchievementToast';
 
 // Achievements & Progression
 export { AchievementBadge } from './AchievementBadge';
