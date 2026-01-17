@@ -96,6 +96,9 @@ export const FarmGame: React.FC<FarmGameProps> = ({
   const [viewportWidth, setViewportWidth] = useState(GAME_WIDTH); // Default to full width for SSR
   const [showEmoteMenu, setShowEmoteMenu] = useState(false);
   const [currentEmote, setCurrentEmote] = useState<EmoteType | null>(null);
+  const [speechText, setSpeechText] = useState<string | null>(null);
+
+  const WAVE_GREETINGS = ['Hi!', 'Hello!', 'Hey!'];
 
   // Update viewport width on client
   useEffect(() => {
@@ -127,6 +130,14 @@ export const FarmGame: React.FC<FarmGameProps> = ({
   const handleEmoteSelect = useCallback((emote: EmoteType) => {
     setCurrentEmote(emote);
     setShowEmoteMenu(false);
+    
+    // Show speech bubble for wave emote
+    if (emote === 'wave') {
+      const greeting = WAVE_GREETINGS[Math.floor(Math.random() * WAVE_GREETINGS.length)];
+      setSpeechText(greeting);
+      setTimeout(() => setSpeechText(null), 2000);
+    }
+    
     // Clear emote after animation completes
     setTimeout(() => setCurrentEmote(null), 1200);
   }, []);
@@ -249,6 +260,12 @@ export const FarmGame: React.FC<FarmGameProps> = ({
               top: gameState.player.position.y - gameState.player.size.height / 2,
             }}
           >
+            {/* Speech bubble */}
+            {speechText && (
+              <div className="farm-game__speech-bubble">
+                {speechText}
+              </div>
+            )}
             <div className="farm-game__player-avatar">
               <PixelAvatar
                 username={avatarSeed}

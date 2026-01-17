@@ -109,6 +109,40 @@
   height: 100%;
 }
 
+/* Speech bubble */
+.museum-game__speech-bubble {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(255, 255, 255, 0.95);
+  color: #1a1a2e;
+  font-family: var(--font-game);
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 2px solid var(--color-border);
+  white-space: nowrap;
+  margin-bottom: 4px;
+  animation: museum-speech-pop 0.2s ease-out;
+  z-index: 10;
+}
+
+.museum-game__speech-bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(255, 255, 255, 0.95);
+}
+
+@keyframes museum-speech-pop {
+  0% { transform: translateX(-50%) scale(0); opacity: 0; }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
 /* Achievement pedestals */
 .museum-game__pedestal {
   position: absolute;
