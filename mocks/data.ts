@@ -153,6 +153,7 @@ export const mockNotifications: Notification[] = [
     message: 'Pepper Palace needs water urgently!',
     ts: new Date(Date.now() - 300000).toISOString(),
     read: false,
+    link: '/farms/c5z4ab',
   },
   {
     id: 'notif-002',
@@ -161,6 +162,7 @@ export const mockNotifications: Notification[] = [
     message: 'You unlocked "Green Streak" badge!',
     ts: new Date(Date.now() - 3600000).toISOString(),
     read: false,
+    link: '/profile',
   },
   {
     id: 'notif-003',
@@ -169,6 +171,7 @@ export const mockNotifications: Notification[] = [
     message: 'Plant Queen Pam followed you!',
     ts: new Date(Date.now() - 7200000).toISOString(),
     read: true,
+    link: '/user/3c9e1b',
   },
   {
     id: 'notif-004',
@@ -177,6 +180,7 @@ export const mockNotifications: Notification[] = [
     message: 'Herb Haven humidity is below threshold',
     ts: new Date(Date.now() - 1800000).toISOString(),
     read: false,
+    link: '/farms/b7y2cf',
   },
 ];
 

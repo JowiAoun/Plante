@@ -7,7 +7,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import type { Notification } from '@/types';
+import { AchievementModal } from '@/components/AchievementModal';
 import './NotificationBell.css';
+
+import { useRouter } from 'next/navigation';
 
 export interface NotificationBellProps {
   /** List of notifications */
@@ -63,9 +66,31 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const router = useRouter();
+
+  const [achievementModalOpen, setAchievementModalOpen] = useState(false);
+  const [selectedAchievement, setSelectedAchievement] = useState<Notification | null>(null);
 
   const unreadCount = items.filter(n => !n.read).length;
   const hasUnread = unreadCount > 0;
+
+  // Handle notification click
+  const handleItemClick = (notification: Notification) => {
+    onMarkRead?.(notification.id);
+    setIsOpen(false);
+    
+    // Check if it's an achievement
+    if (notification.type === 'achievement') {
+      setSelectedAchievement(notification);
+      setAchievementModalOpen(true);
+      return;
+    }
+    
+    // Handle redirect
+    if (notification.link) {
+      router.push(notification.link);
+    }
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -93,69 +118,77 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
   };
 
   return (
-    <div className="notification-bell" onKeyDown={handleKeyDown}>
-      <button
-        ref={buttonRef}
-        className={`notification-bell__button ${hasUnread ? 'notification-bell__button--active' : ''}`}
-        onClick={() => setIsOpen(!isOpen)}
-        aria-haspopup="true"
-        aria-expanded={isOpen}
-        aria-label={`Notifications${hasUnread ? `, ${unreadCount} unread` : ''}`}
-      >
-        <span className="notification-bell__icon" aria-hidden="true">🔔</span>
-        {hasUnread && (
-          <span className="notification-bell__badge" aria-hidden="true">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
-      </button>
+    <>
+      <div className="notification-bell" onKeyDown={handleKeyDown}>
+        <button
+          ref={buttonRef}
+          className={`notification-bell__button ${hasUnread ? 'notification-bell__button--active' : ''}`}
+          onClick={() => setIsOpen(!isOpen)}
+          aria-haspopup="true"
+          aria-expanded={isOpen}
+          aria-label={`Notifications${hasUnread ? `, ${unreadCount} unread` : ''}`}
+        >
+          <span className="notification-bell__icon" aria-hidden="true">🔔</span>
+          {hasUnread && (
+            <span className="notification-bell__badge" aria-hidden="true">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </button>
 
-      {isOpen && (
-        <div ref={dropdownRef} className="notification-bell__dropdown" role="menu">
-          <div className="notification-bell__header">
-            <span className="notification-bell__title">Notifications</span>
-            {hasUnread && onMarkAllRead && (
-              <button
-                className="notification-bell__mark-all"
-                onClick={onMarkAllRead}
-              >
-                Mark all read
-              </button>
-            )}
-          </div>
-
-          <div className="notification-bell__list">
-            {items.length === 0 ? (
-              <div className="notification-bell__empty">
-                No notifications
-              </div>
-            ) : (
-              items.slice(0, 10).map(notification => (
-                <div
-                  key={notification.id}
-                  className={`notification-bell__item ${notification.read ? '' : 'notification-bell__item--unread'}`}
-                  role="menuitem"
-                  onClick={() => onMarkRead?.(notification.id)}
-                  style={{ borderLeftColor: severityColors[notification.severity] }}
+        {isOpen && (
+          <div ref={dropdownRef} className="notification-bell__dropdown" role="menu">
+            <div className="notification-bell__header">
+              <span className="notification-bell__title">Notifications</span>
+              {hasUnread && onMarkAllRead && (
+                <button
+                  className="notification-bell__mark-all"
+                  onClick={onMarkAllRead}
                 >
-                  <span className="notification-bell__item-icon">
-                    {typeIcons[notification.type]}
-                  </span>
-                  <div className="notification-bell__item-content">
-                    <p className="notification-bell__item-message">
-                      {notification.message}
-                    </p>
-                    <span className="notification-bell__item-time">
-                      {formatRelativeTime(notification.ts)}
-                    </span>
-                  </div>
+                  Mark all read
+                </button>
+              )}
+            </div>
+
+            <div className="notification-bell__list">
+              {items.length === 0 ? (
+                <div className="notification-bell__empty">
+                  No notifications
                 </div>
-              ))
-            )}
+              ) : (
+                items.slice(0, 10).map(notification => (
+                  <div
+                    key={notification.id}
+                    className={`notification-bell__item ${notification.read ? '' : 'notification-bell__item--unread'}`}
+                    role="menuitem"
+                    onClick={() => handleItemClick(notification)}
+                    style={{ borderLeftColor: severityColors[notification.severity] }}
+                  >
+                    <span className="notification-bell__item-icon">
+                      {typeIcons[notification.type]}
+                    </span>
+                    <div className="notification-bell__item-content">
+                      <p className="notification-bell__item-message">
+                        {notification.message}
+                      </p>
+                      <span className="notification-bell__item-time">
+                        {formatRelativeTime(notification.ts)}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+
+      <AchievementModal 
+        isOpen={achievementModalOpen}
+        notification={selectedAchievement}
+        onClose={() => setAchievementModalOpen(false)}
+      />
+    </>
   );
 };
 

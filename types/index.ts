@@ -64,6 +64,7 @@ export interface Notification {
   message: string;
   ts: string;
   read: boolean;
+  link?: string;
 }
 
 // Exhibit image
