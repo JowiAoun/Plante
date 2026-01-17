@@ -2,21 +2,27 @@
 
 import { AppShell } from '@/components/AppShell'
 import { MuseumGame } from '@/components/MuseumGame'
-import { mockNotifications, mockUsers, mockAchievements } from '@/mocks/data'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { mockNotifications, mockAchievements } from '@/mocks/data'
 
 export default function MuseumPage() {
-  const currentUser = mockUsers[0]
+  const { user } = useCurrentUser()
   
+  if (!user) {
+    return null
+  }
+
   return (
     <AppShell 
-      user={currentUser} 
+      user={user} 
       notifications={mockNotifications} 
     >
       <MuseumGame
-        avatarSeed={currentUser.avatarSeed}
-        userId={currentUser.id}
+        avatarSeed={user.avatarSeed}
+        userId={user.id}
         achievements={mockAchievements}
       />
     </AppShell>
   )
 }
+

@@ -13,6 +13,8 @@ export interface ActionButtonProps {
   label: string;
   /** Visual variant */
   variant?: ActionButtonVariant;
+  /** Button type - use 'submit' for form submission */
+  type?: 'button' | 'submit' | 'reset';
   /** Click handler */
   onClick?: () => void;
   /** Loading state */
@@ -33,6 +35,7 @@ export interface ActionButtonProps {
 export const ActionButton: React.FC<ActionButtonProps> = ({
   label,
   variant = 'primary',
+  type = 'button',
   onClick,
   loading = false,
   disabled = false,
@@ -53,7 +56,7 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
 
   return (
     <button
-      type="button"
+      type={type}
       className={`nes-btn action-button ${variantClass} ${sizeClass} ${widthClass} ${stateClass}`}
       onClick={handleClick}
       disabled={disabled || loading}
@@ -75,3 +78,4 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
 };
 
 export default ActionButton;
+

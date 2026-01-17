@@ -65,6 +65,18 @@ export async function POST(request: NextRequest) {
 
     const users = await getUsersCollection();
 
+    // Log the user ID for debugging
+    console.log('Complete profile - User ID:', session.user.id);
+
+    // Validate ObjectId format
+    if (!ObjectId.isValid(session.user.id)) {
+      console.error('Invalid ObjectId format:', session.user.id);
+      return NextResponse.json(
+        { error: 'Invalid user ID format' },
+        { status: 400 }
+      );
+    }
+
     // Check username availability (except for current user)
     const existingUser = await users.findOne({
       username: normalizedUsername,
@@ -75,6 +87,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Username is already taken' },
         { status: 409 }
+      );
+    }
+
+    // First, verify the user exists
+    const currentUser = await users.findOne({ _id: new ObjectId(session.user.id) });
+    if (!currentUser) {
+      console.error('User not found in database:', session.user.id);
+      return NextResponse.json(
+        { error: 'User not found in database. Please sign out and sign in again.' },
+        { status: 404 }
       );
     }
 
@@ -96,8 +118,8 @@ export async function POST(request: NextRequest) {
 
     if (!result) {
       return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
+        { error: 'Failed to update profile' },
+        { status: 500 }
       );
     }
 

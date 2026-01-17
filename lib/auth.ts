@@ -12,7 +12,7 @@ import { getUsersCollection } from './db/collections';
 import { ObjectId } from 'mongodb';
 
 export const authOptions: NextAuthOptions = {
-  adapter: MongoDBAdapter(clientPromise) as NextAuthOptions['adapter'],
+  adapter: MongoDBAdapter(clientPromise, { databaseName: 'plante' }) as NextAuthOptions['adapter'],
   providers: [
     GoogleProvider({
       clientId: env.GOOGLE_CLIENT_ID,

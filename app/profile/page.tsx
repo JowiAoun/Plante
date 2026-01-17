@@ -2,16 +2,23 @@
 
 import { Profile } from '@/components/pages/Profile'
 import { AppShell } from '@/components/AppShell'
-import { mockNotifications, mockUsers } from '@/mocks/data'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { mockNotifications } from '@/mocks/data'
 
 export default function ProfilePage() {
-  const currentUser = mockUsers[0]
+  const { user } = useCurrentUser()
+  
+  if (!user) {
+    return null
+  }
+
   return (
     <AppShell 
-      user={currentUser} 
+      user={user} 
       notifications={mockNotifications} 
     >
-      <Profile user={currentUser} isOwnProfile={true} />
+      <Profile user={user} isOwnProfile={true} />
     </AppShell>
   )
 }
+

@@ -10,7 +10,8 @@ import { useState } from 'react'
 import './farm-detail.css'
 
 import { AppShell } from '@/components/AppShell'
-import { mockUsers, mockNotifications } from '@/mocks/data'
+import { mockNotifications } from '@/mocks/data'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useRouter } from 'next/navigation'
 
 interface FarmPageProps {
@@ -20,9 +21,9 @@ interface FarmPageProps {
 export default function FarmPage({ params }: FarmPageProps) {
   const { id } = use(params)
   const router = useRouter()
+  const { user: currentUser } = useCurrentUser()
   const farm = mockFarms.find(f => f.id === id)
   const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null)
-  const currentUser = mockUsers[0]
 
   const handleNavigate = (page: string) => {
     if (page === 'dashboard') router.push('/')

@@ -2,16 +2,19 @@
 
 import { Settings } from '@/components/pages/Settings'
 import { AppShell } from '@/components/AppShell'
-import { mockNotifications, mockUsers } from '@/mocks/data'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { mockNotifications } from '@/mocks/data'
 
 export default function SettingsPage() {
-  const currentUser = mockUsers[0]
+  const { user } = useCurrentUser()
+
   return (
     <AppShell 
-      user={currentUser} 
+      user={user} 
       notifications={mockNotifications} 
     >
       <Settings />
     </AppShell>
   )
 }
+

@@ -141,8 +141,8 @@ export const ProfileSetup: React.FC = () => {
       // Update session to refresh JWT token
       await updateSession();
 
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // Hard redirect to dashboard to ensure fresh session
+      window.location.href = '/dashboard';
     } catch (error) {
       console.error('Profile setup error:', error);
       setUsernameError('An error occurred. Please try again.');
@@ -238,6 +238,7 @@ export const ProfileSetup: React.FC = () => {
           {/* Submit Button */}
           <div className="profile-setup__submit-btn">
             <ActionButton
+              type="submit"
               label={isSubmitting ? 'Saving...' : 'Complete Setup'}
               variant="success"
               icon="✓"
