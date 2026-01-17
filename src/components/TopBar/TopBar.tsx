@@ -1,6 +1,6 @@
 /**
  * TopBar Component
- * Logo, navigation, notification bell, and user avatar
+ * Logo, notification bell, and user avatar
  */
 
 import React from 'react';
@@ -34,7 +34,7 @@ export const TopBar: React.FC<TopBarProps> = ({
 }) => {
   return (
     <header className="top-bar" role="banner">
-      {/* Menu toggle for mobile */}
+      {/* Menu toggle */}
       <button
         className="top-bar__menu-toggle"
         onClick={onToggleSidebar}
@@ -43,27 +43,11 @@ export const TopBar: React.FC<TopBarProps> = ({
         ☰
       </button>
 
-      {/* Logo - PLACEHOLDER */}
+      {/* Logo */}
       <div className="top-bar__logo">
         <span className="top-bar__logo-icon" aria-hidden="true">🌱</span>
-        <span className="top-bar__logo-text">
-          PLANTE
-          <span className="top-bar__logo-placeholder">(placeholder)</span>
-        </span>
+        <span className="top-bar__logo-text">PLANTE</span>
       </div>
-
-      {/* Navigation */}
-      <nav className="top-bar__nav" aria-label="Main navigation">
-        <a href="#dashboard" className="top-bar__nav-link top-bar__nav-link--active">
-          Dashboard
-        </a>
-        <a href="#museum" className="top-bar__nav-link">
-          Museum
-        </a>
-        <a href="#leaderboard" className="top-bar__nav-link">
-          Leaderboard
-        </a>
-      </nav>
 
       {/* Right side actions */}
       <div className="top-bar__actions">

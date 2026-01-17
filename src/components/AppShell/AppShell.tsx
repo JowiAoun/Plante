@@ -1,12 +1,14 @@
 /**
  * AppShell Component
- * Main layout wrapper with header, nav, content area, and footer
+ * Main layout wrapper with header, sidebar navigation, and content area
  */
 
 import React, { useState } from 'react';
 import type { User, Notification } from '../../types';
 import { TopBar } from '../TopBar';
 import './AppShell.css';
+
+export type Page = 'dashboard' | 'profile' | 'museum' | 'leaderboard' | 'settings';
 
 export interface AppShellProps {
   /** Main content */
@@ -17,8 +19,10 @@ export interface AppShellProps {
   notifications?: Notification[];
   /** Theme variant */
   theme?: 'default' | 'spring' | 'night' | 'neon';
-  /** Show footer */
-  showFooter?: boolean;
+  /** Current active page */
+  currentPage?: Page;
+  /** Page navigation callback */
+  onNavigate?: (page: Page) => void;
 }
 
 /**
@@ -29,9 +33,24 @@ export const AppShell: React.FC<AppShellProps> = ({
   user,
   notifications = [],
   theme = 'default',
-  showFooter = true,
+  currentPage = 'dashboard',
+  onNavigate,
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, page: Page) => {
+    e.preventDefault();
+    onNavigate?.(page);
+    setSidebarOpen(false); // Close sidebar on mobile after navigation
+  };
+
+  const navItems: { page: Page; icon: string; label: string }[] = [
+    { page: 'dashboard', icon: '🏠', label: 'Dashboard' },
+    { page: 'profile', icon: '👤', label: 'Profile' },
+    { page: 'museum', icon: '🏛️', label: 'Museum' },
+    { page: 'leaderboard', icon: '🏆', label: 'Leaderboard' },
+    { page: 'settings', icon: '⚙️', label: 'Settings' },
+  ];
 
   return (
     <div className={`app-shell app-shell--${theme}`} data-theme={theme}>
@@ -49,17 +68,23 @@ export const AppShell: React.FC<AppShellProps> = ({
 
       {/* Main layout area */}
       <div className="app-shell__body">
-        {/* Sidebar (mobile overlay) */}
+        {/* Sidebar */}
         <aside
           className={`app-shell__sidebar ${sidebarOpen ? 'app-shell__sidebar--open' : ''}`}
-          aria-hidden={!sidebarOpen}
         >
-          <nav className="app-shell__sidebar-nav" aria-label="Sidebar navigation">
-            <a href="#dashboard" className="app-shell__sidebar-link">🏠 Dashboard</a>
-            <a href="#farms" className="app-shell__sidebar-link">🌱 My Farms</a>
-            <a href="#museum" className="app-shell__sidebar-link">🏛️ Museum</a>
-            <a href="#leaderboard" className="app-shell__sidebar-link">🏆 Leaderboard</a>
-            <a href="#settings" className="app-shell__sidebar-link">⚙️ Settings</a>
+          <nav className="app-shell__sidebar-nav" aria-label="Main navigation">
+            {navItems.map(({ page, icon, label }) => (
+              <a
+                key={page}
+                href={`#${page}`}
+                className={`app-shell__sidebar-link ${currentPage === page ? 'app-shell__sidebar-link--active' : ''}`}
+                onClick={(e) => handleNavClick(e, page)}
+                aria-current={currentPage === page ? 'page' : undefined}
+              >
+                <span className="app-shell__sidebar-icon">{icon}</span>
+                <span className="app-shell__sidebar-label">{label}</span>
+              </a>
+            ))}
           </nav>
         </aside>
 
@@ -77,13 +102,6 @@ export const AppShell: React.FC<AppShellProps> = ({
           {children}
         </main>
       </div>
-
-      {/* Footer */}
-      {showFooter && (
-        <footer className="app-shell__footer">
-          <p>🌱 Plante — Pixel Plant Monitoring</p>
-        </footer>
-      )}
     </div>
   );
 };

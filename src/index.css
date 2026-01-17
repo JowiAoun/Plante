@@ -120,10 +120,18 @@ h1 { font-size: 24px; }
 h2 { font-size: 16px; }
 h3 { font-size: 12px; }
 
-/* UI font for readable text */
+/* UI font for readable text blocks */
 .font-ui,
-p, span, label {
+p {
   font-family: var(--font-ui);
+}
+
+/* Pixel game font for nav and buttons */
+.font-game,
+.app-shell__sidebar-link,
+.nes-btn,
+.action-button {
+  font-family: var(--font-game) !important;
 }
 
 /* ============================================
