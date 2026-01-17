@@ -8,8 +8,8 @@ import time
 import board
 import adafruit_dht
 
-# Initialize the DHT11 sensor on GPIO 17 (board.D17)
-dht_device = adafruit_dht.DHT11(board.D17)
+# Initialize the DHT11 sensor on GPIO 17 (board.D4)
+dht_device = adafruit_dht.DHT11(board.D4)
 
 def loop():
     counts = 0  # Measurement counts
