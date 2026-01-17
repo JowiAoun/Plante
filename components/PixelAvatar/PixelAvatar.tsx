@@ -33,7 +33,8 @@ export const PixelAvatar: React.FC<PixelAvatarProps> = ({
   const avatarSvg = useMemo(() => {
     const avatar = createAvatar(pixelArt, {
       seed: seed || username,
-      scale: 90,
+      scale: 100,
+      translateY: 10,
       backgroundColor: ['transparent'],
     });
     return avatar.toString();

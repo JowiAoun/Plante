@@ -77,6 +77,9 @@
   z-index: 200;
   text-align: center;
   pointer-events: none;
+  /* Reset locked state transparency */
+  opacity: 1;
+  filter: none;
 }
 
 .achievement-badge__tooltip::after {

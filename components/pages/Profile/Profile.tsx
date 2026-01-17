@@ -40,7 +40,7 @@ export const Profile: React.FC<ProfileProps> = ({
   return (
     <div className="profile">
       {/* Profile Header */}
-      <header className="profile__header nes-container is-dark">
+      <header className="profile__header">
         <div className="profile__avatar">
           <PixelAvatar 
             username={user.username} 
