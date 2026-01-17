@@ -43,32 +43,34 @@ const getStatusColor = (status: Farm['status']): string => {
   }
 };
 
-// Create farm layout based on farms
+// Create farm layout based on farms (same grid layout as museum)
 const createFarmLayout = (farms: Farm[]): FarmLayout => {
   const GRID_WIDTH = 16;
   const GRID_HEIGHT = 10;
-  const TILE_SIZE = 40;
+  const TILE_SIZE = 48;
   
-  // Position farms in available spots
-  const farmPositions = [
-    { x: 420, y: 280 }, // Near well (bottom left)
-    { x: 510, y: 320 }, // Near blanket (center bottom)
-    { x: 360, y: 160 }, // Center area
-    { x: 280, y: 240 }, // Left of center
-  ];
-  
-  const farmSpots: FarmSpot[] = farms.slice(0, 4).map((farm, index) => ({
-    id: `farm-${farm.id}`,
-    farm,
-    position: farmPositions[index] || { x: 300 + index * 80, y: 200 },
-    size: { width: 48, height: 48 },
-  }));
+  // Position farms in 2 rows of 4 (same as museum achievements)
+  const farmSpots: FarmSpot[] = farms.slice(0, 8).map((farm, index) => {
+    const row = Math.floor(index / 4);
+    const col = index % 4;
+    
+    // Position: row 0 at y=2, row 1 at y=6
+    const x = (col + 2) * TILE_SIZE * 1.5 + TILE_SIZE;
+    const y = (row === 0 ? 2 : 6) * TILE_SIZE;
+    
+    return {
+      id: `farm-${farm.id}`,
+      farm,
+      position: { x, y },
+      size: { width: 64, height: 80 },
+    };
+  });
 
   return {
     gridWidth: GRID_WIDTH,
     gridHeight: GRID_HEIGHT,
     tileSize: TILE_SIZE,
-    spawnPoint: { x: 320, y: 280 },
+    spawnPoint: { x: GRID_WIDTH * TILE_SIZE / 2, y: GRID_HEIGHT * TILE_SIZE / 2 },
     farmSpots,
   };
 };
@@ -113,12 +115,27 @@ export const FarmGame: React.FC<FarmGameProps> = ({
 
   return (
     <div className="farm-game">
-      {/* Owner info */}
-      <div className="farm-game__owner">
-        <PixelAvatar username={owner.username} seed={owner.avatarSeed} size="small" />
-        <span className="farm-game__owner-name">
-          {isOwnFarm ? 'Your Farm' : `${owner.displayName}'s Farm`}
-        </span>
+      {/* Navigation header */}
+      <div className="farm-game__nav">
+        <button 
+          className="farm-game__nav-btn"
+          onClick={() => window.history.back()}
+          aria-label="Go back"
+        >
+          ← Back
+        </button>
+        <button 
+          className="farm-game__nav-btn farm-game__nav-btn--switch"
+          onClick={() => window.location.href = `/museums/explore/${owner.id}`}
+          aria-label="Go to museum"
+        >
+          🏛️ Visit Museum →
+        </button>
+      </div>
+
+      {/* Title banner */}
+      <div className="farm-game__banner">
+        <span className="farm-game__title">🌾 {isOwnFarm ? 'YOUR FARM' : `${owner.displayName.toUpperCase()}'S FARM`} 🌾</span>
       </div>
 
       <div 

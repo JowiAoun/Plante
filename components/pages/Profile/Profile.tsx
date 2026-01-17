@@ -111,7 +111,7 @@ export const Profile: React.FC<ProfileProps> = ({
           label="Visit Museum"
           variant="secondary"
           icon="🏛️"
-          onClick={() => window.location.href = '/museum'}
+          onClick={() => window.location.href = `/museums/explore/${user.id}`}
         />
         <ActionButton
           label="Visit Farm"

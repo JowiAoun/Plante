@@ -1,19 +1,67 @@
-/* Farm Game Styles */
+/* Farm Game Styles - Matching Museum Layout */
 
 .farm-game {
   position: relative;
   width: 100%;
-  max-width: 640px;
+  max-width: 768px;
   margin: 0 auto;
   overflow: hidden;
   background-color: var(--color-background);
   image-rendering: pixelated;
 }
 
+/* Navigation header */
+.farm-game__nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: var(--color-surface);
+  border: 4px solid var(--color-border);
+  border-bottom: none;
+}
+
+.farm-game__nav-btn {
+  font-family: var(--font-game);
+  font-size: 10px;
+  color: var(--color-text);
+  background-color: var(--color-dark-gray);
+  border: 2px solid var(--color-border);
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background-color 0.1s, border-color 0.1s;
+}
+
+.farm-game__nav-btn:hover {
+  background-color: var(--color-primary);
+  border-color: var(--color-accent);
+}
+
+.farm-game__nav-btn--switch {
+  color: var(--color-accent);
+}
+
+.farm-game__banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background: linear-gradient(180deg, var(--color-dark-purple) 0%, var(--color-dark-blue) 100%);
+  border: 4px solid var(--color-border);
+  border-bottom: none;
+}
+
+.farm-game__title {
+  font-family: var(--font-game);
+  font-size: 14px;
+  color: var(--color-accent);
+  text-shadow: 2px 2px 0 var(--color-black);
+}
+
 .farm-game__container {
   position: relative;
-  width: 640px;
-  height: 400px;
+  width: 768px;
+  height: 480px;
   border: 4px solid var(--color-border);
   overflow: hidden;
 }
@@ -31,8 +79,8 @@
 /* Player character */
 .farm-game__player {
   position: absolute;
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   transition: none;
   z-index: 20;
   image-rendering: pixelated;
@@ -44,21 +92,22 @@
 
 @keyframes farm-player-bob {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
+  50% { transform: translateY(-4px); }
 }
 
 .farm-game__player-avatar {
   width: 100%;
   height: 100%;
-  border: 2px solid var(--color-accent);
-  background-color: rgba(0, 0, 0, 0.3);
+  border: 2px solid var(--color-primary);
+  background-color: var(--color-surface);
   border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Farm spots */
 .farm-game__farm-spot {
   position: absolute;
+  width: 64px;
+  height: 80px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -73,14 +122,22 @@
   align-items: center;
   justify-content: center;
   font-size: 28px;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--color-surface);
   border: 3px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: 4px;
   transition: transform 0.1s, border-color 0.1s;
 }
 
+.farm-game__farm-base {
+  width: 64px;
+  height: 24px;
+  background: linear-gradient(180deg, var(--color-dark-gray) 0%, #3a3530 100%);
+  border: 2px solid var(--color-lavender);
+  border-radius: 2px;
+}
+
 .farm-game__farm-spot--active .farm-game__farm-icon {
-  transform: scale(1.15);
+  transform: scale(1.1);
   border-color: var(--color-accent);
 }
 
@@ -119,19 +176,21 @@
 /* Farm info popup */
 .farm-game__popup {
   position: absolute;
-  bottom: 16px;
+  bottom: 60px;
   left: 50%;
   transform: translateX(-50%);
   width: 280px;
-  padding: 12px;
-  background-color: rgba(0, 0, 0, 0.9);
+  padding: 16px;
+  background-color: var(--color-black);
   border: 4px solid var(--color-accent);
   z-index: 100;
+  text-align: center;
 }
 
 .farm-game__popup-header {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   margin-bottom: 8px;
 }
@@ -142,14 +201,14 @@
 
 .farm-game__popup-title {
   font-family: var(--font-game);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-accent);
   margin: 0;
 }
 
 .farm-game__popup-status {
   font-family: var(--font-game);
-  font-size: 9px;
+  font-size: 10px;
   text-transform: uppercase;
   margin: 0 0 8px 0;
 }
@@ -158,6 +217,7 @@
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .farm-game__popup-sensor {
@@ -179,8 +239,8 @@
   position: absolute;
   bottom: 16px;
   left: 16px;
-  width: 100px;
-  height: 100px;
+  width: 120px;
+  height: 120px;
   z-index: 50;
 }
 
@@ -198,12 +258,11 @@
 
 .farm-game__dpad-btn {
   position: absolute;
-  width: 32px;
-  height: 32px;
-  background-color: rgba(0, 0, 0, 0.6);
-  border: 2px solid var(--color-border);
-  font-size: 14px;
-  color: var(--color-text);
+  width: 40px;
+  height: 40px;
+  background-color: var(--color-surface);
+  border: 3px solid var(--color-border);
+  font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -213,6 +272,7 @@
 
 .farm-game__dpad-btn:active {
   background-color: var(--color-primary);
+  border-color: var(--color-accent);
 }
 
 .farm-game__dpad-btn--up {
@@ -242,7 +302,7 @@
 /* Instructions */
 .farm-game__instructions {
   text-align: center;
-  padding: 8px;
+  padding: 12px;
   font-family: var(--font-ui);
   font-size: 10px;
   color: var(--color-text-muted);
@@ -254,27 +314,10 @@
   }
 }
 
-/* Owner info */
-.farm-game__owner {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background-color: var(--color-surface);
-  border: 2px solid var(--color-border);
-  margin-bottom: 8px;
-}
-
-.farm-game__owner-name {
-  font-family: var(--font-game);
-  font-size: 12px;
-  color: var(--color-text);
-}
-
 /* Responsive scaling */
-@media (max-width: 680px) {
+@media (max-width: 800px) {
   .farm-game__container {
     transform-origin: top left;
-    transform: scale(calc(100vw / 640));
+    transform: scale(calc(100vw / 768));
   }
 }

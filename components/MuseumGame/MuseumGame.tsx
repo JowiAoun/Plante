@@ -21,6 +21,8 @@ export interface MuseumGameProps {
   userId: string;
   /** Optional achievements (defaults to mock data) */
   achievements?: Achievement[];
+  /** Owner name (for viewing other users' museums) */
+  ownerName?: string;
 }
 
 // Museum layout configuration
@@ -35,7 +37,6 @@ const createMuseumLayout = (achievements: Achievement[], userId: string): Museum
     const col = index % 4;
     
     // Position: row 0 at y=2, row 1 at y=6
-    // Columns spread across middle of screen
     const x = (col + 2) * TILE_SIZE * 1.5 + TILE_SIZE;
     const y = (row === 0 ? 2 : 6) * TILE_SIZE;
     
@@ -54,11 +55,7 @@ const createMuseumLayout = (achievements: Achievement[], userId: string): Museum
     tileSize: TILE_SIZE,
     spawnPoint: { x: GRID_WIDTH * TILE_SIZE / 2, y: GRID_HEIGHT * TILE_SIZE / 2 },
     pedestals,
-    decorations: [
-      { type: 'plant', position: { x: 60, y: 80 } },
-      { type: 'plant', position: { x: 680, y: 80 } },
-      { type: 'rug', position: { x: 350, y: 220 } },
-    ],
+    decorations: [],
   };
 };
 
@@ -69,29 +66,26 @@ export const MuseumGame: React.FC<MuseumGameProps> = ({
   avatarSeed,
   userId,
   achievements = mockAchievements,
+  ownerName,
 }) => {
   const [activeAchievementId, setActiveAchievementId] = useState<string | null>(null);
 
-  // Create layout
   const layout = useMemo(
     () => createMuseumLayout(achievements, userId),
     [achievements, userId]
   );
 
-  // Game loop hook
   const { gameState, gameContainerRef } = useGameLoop({
     layout,
     avatarSeed,
     onAchievementInteract: setActiveAchievementId,
   });
 
-  // Get active achievement details
   const activeAchievement = useMemo(() => {
     if (!activeAchievementId) return null;
     return achievements.find((a) => a.id === activeAchievementId) || null;
   }, [activeAchievementId, achievements]);
 
-  // D-pad touch handlers
   const handleTouchStart = useCallback((direction: Direction) => {
     const container = gameContainerRef.current;
     if (container && 'setTouchInput' in container) {
@@ -108,6 +102,29 @@ export const MuseumGame: React.FC<MuseumGameProps> = ({
 
   return (
     <div className="museum-game">
+      {/* Navigation header */}
+      <div className="museum-game__nav">
+        <button 
+          className="museum-game__nav-btn"
+          onClick={() => window.history.back()}
+          aria-label="Go back"
+        >
+          ← Back
+        </button>
+        <button 
+          className="museum-game__nav-btn museum-game__nav-btn--switch"
+          onClick={() => window.location.href = `/farms/explore/${userId}`}
+          aria-label="Go to farm"
+        >
+          🌾 Visit Farm →
+        </button>
+      </div>
+
+      {/* Title banner */}
+      <div className="museum-game__banner">
+        <span className="museum-game__title">🏛️ {ownerName ? `${ownerName.toUpperCase()}'S MUSEUM` : 'YOUR MUSEUM'} 🏛️</span>
+      </div>
+
       <div 
         ref={gameContainerRef}
         className="museum-game__container"
@@ -115,32 +132,8 @@ export const MuseumGame: React.FC<MuseumGameProps> = ({
         role="application"
         aria-label="Museum exploration game. Use arrow keys or WASD to move."
       >
-        {/* Floor */}
-        <div className="museum-game__floor" />
-
-        {/* Walls */}
-        <div className="museum-game__walls">
-          <div className="museum-game__wall museum-game__wall--top">
-            <span className="museum-game__title">🏛️ YOUR MUSEUM 🏛️</span>
-          </div>
-          <div className="museum-game__wall museum-game__wall--bottom" />
-          <div className="museum-game__wall museum-game__wall--left" />
-          <div className="museum-game__wall museum-game__wall--right" />
-        </div>
-
-        {/* Decorations */}
-        {layout.decorations.map((dec, i) => (
-          <div
-            key={`dec-${i}`}
-            className="museum-game__decoration"
-            style={{
-              left: dec.position.x,
-              top: dec.position.y,
-            }}
-          >
-            {dec.type === 'plant' ? '🌿' : dec.type === 'rug' ? '🟫' : '🏺'}
-          </div>
-        ))}
+        {/* Background */}
+        <div className="museum-game__background" />
 
         {/* Achievement Pedestals */}
         {layout.pedestals.map((pedestal) => {
@@ -212,9 +205,7 @@ export const MuseumGame: React.FC<MuseumGameProps> = ({
             onMouseDown={() => handleTouchStart('up')}
             onMouseUp={() => handleTouchEnd('up')}
             aria-label="Move up"
-          >
-            ▲
-          </button>
+          >▲</button>
           <button
             className="museum-game__dpad-btn museum-game__dpad-btn--down"
             onTouchStart={() => handleTouchStart('down')}
@@ -222,9 +213,7 @@ export const MuseumGame: React.FC<MuseumGameProps> = ({
             onMouseDown={() => handleTouchStart('down')}
             onMouseUp={() => handleTouchEnd('down')}
             aria-label="Move down"
-          >
-            ▼
-          </button>
+          >▼</button>
           <button
             className="museum-game__dpad-btn museum-game__dpad-btn--left"
             onTouchStart={() => handleTouchStart('left')}
@@ -232,9 +221,7 @@ export const MuseumGame: React.FC<MuseumGameProps> = ({
             onMouseDown={() => handleTouchStart('left')}
             onMouseUp={() => handleTouchEnd('left')}
             aria-label="Move left"
-          >
-            ◀
-          </button>
+          >◀</button>
           <button
             className="museum-game__dpad-btn museum-game__dpad-btn--right"
             onTouchStart={() => handleTouchStart('right')}
@@ -242,13 +229,10 @@ export const MuseumGame: React.FC<MuseumGameProps> = ({
             onMouseDown={() => handleTouchStart('right')}
             onMouseUp={() => handleTouchEnd('right')}
             aria-label="Move right"
-          >
-            ▶
-          </button>
+          >▶</button>
         </div>
       </div>
 
-      {/* Desktop instructions */}
       <div className="museum-game__instructions">
         Use <strong>WASD</strong> or <strong>Arrow keys</strong> to move • Walk near achievements to view details
       </div>
