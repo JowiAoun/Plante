@@ -9,6 +9,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ActionButton } from '@/components/../components/ActionButton';
 import { Toast, ToastContainer } from '@/components/../components/Toast';
 import './Settings.css';
+import { signOut } from 'next-auth/react';
 
 type Theme = 'default' | 'spring' | 'night' | 'neon';
 
@@ -179,6 +180,29 @@ export const Settings: React.FC = () => {
       setToast('Failed to verify code');
     }
     setLoading(false);
+  };
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/' });
+  };
+
+  const handleExportData = () => {
+    const data = {
+      theme: currentTheme,
+      smsPreferences: smsPrefs,
+      exportedAt: new Date().toISOString(),
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `plante-settings-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setToast('Settings exported successfully!');
   };
 
   const handleCategoryToggle = async (category: keyof SmsPreferences['categories'], enabled: boolean) => {
@@ -429,11 +453,22 @@ export const Settings: React.FC = () => {
       </section>
 
       {/* Account */}
+      {/* Account */}
       <section className="settings__section nes-container is-dark">
         <h2 className="settings__section-title">Account</h2>
         <div className="settings__actions">
-          <ActionButton label="Export Data" variant="secondary" icon="📥" />
-          <ActionButton label="Log Out" variant="warning" icon="🚪" />
+          <ActionButton 
+            label="Export Data" 
+            variant="secondary" 
+            icon="📥" 
+            onClick={handleExportData}
+          />
+          <ActionButton 
+            label="Log Out" 
+            variant="warning" 
+            icon="🚪" 
+            onClick={handleLogout}
+          />
         </div>
       </section>
 
