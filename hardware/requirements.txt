@@ -1,0 +1,11 @@
+# Hardware dependencies for Plante project
+# Raspberry Pi GPIO and sensor libraries
+
+# Servo motor control (lgpio for Pi 5 compatibility)
+lgpio
+
+# DHT11 temperature/humidity sensor
+adafruit-circuitpython-dht
+
+# I2C for BH1750 light sensor
+smbus2
