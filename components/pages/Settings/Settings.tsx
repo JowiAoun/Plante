@@ -47,6 +47,16 @@ const defaultSmsPreferences: SmsPreferences = {
 };
 
 /**
+ * Mask phone number for display (e.g., +1613******* )
+ */
+function maskPhoneNumber(phone: string): string {
+  if (!phone || phone.length < 6) return phone;
+  const visible = phone.slice(0, 5);
+  const masked = '*'.repeat(phone.length - 5);
+  return visible + masked;
+}
+
+/**
  * Settings - Application settings page
  */
 export const Settings: React.FC = () => {
@@ -248,11 +258,24 @@ export const Settings: React.FC = () => {
           <label className="settings__label settings__label--block">Phone Number</label>
           <div className="settings__phone-input-row">
             <input
-              type="tel"
+              type="text"
               className="nes-input is-dark settings__phone-input"
               placeholder="+1234567890"
-              value={phoneInput}
-              onChange={(e) => setPhoneInput(e.target.value)}
+              value={maskPhoneNumber(smsPrefs.phoneVerified ? smsPrefs.phoneNumber : phoneInput)}
+              onChange={(e) => {
+                // Get the raw input - user might be typing or deleting
+                const newValue = e.target.value;
+                // If the new value is shorter, user is deleting - trim the actual phone
+                if (newValue.length < maskPhoneNumber(phoneInput).length) {
+                  setPhoneInput(phoneInput.slice(0, -1));
+                } else {
+                  // User is adding a character - get the last typed char
+                  const lastChar = newValue.slice(-1);
+                  if (lastChar && lastChar !== '*') {
+                    setPhoneInput(phoneInput + lastChar);
+                  }
+                }
+              }}
               disabled={smsPrefs.phoneVerified}
             />
             {smsPrefs.phoneVerified ? (

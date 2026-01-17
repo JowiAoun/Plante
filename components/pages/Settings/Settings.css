@@ -125,6 +125,8 @@
   font-size: 10px !important;
   padding: 8px 12px !important;
   white-space: nowrap;
+  min-width: 80px;
+  text-align: center;
 }
 
 .settings__verified-badge {
