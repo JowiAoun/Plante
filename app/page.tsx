@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, use, useEffect } from 'react'
 import { AppShell } from '@/components/AppShell'
 import type { Page } from '@/components/AppShell'
 import { Dashboard } from '@/components/pages/Dashboard'
@@ -8,6 +8,7 @@ import { Profile } from '@/components/pages/Profile'
 import { Leaderboard } from '@/components/pages/Leaderboard'
 import { Settings } from '@/components/pages/Settings'
 import { mockUsers, mockNotifications } from '@/mocks/data'
+import { useSearchParams } from 'next/navigation'
 
 // Placeholder Museum page
 const Museum = () => (
@@ -22,8 +23,17 @@ const Museum = () => (
 )
 
 export default function Home() {
+  const searchParams = useSearchParams()
+  // Default to dashboard, but assume search param might override if we want to get fancy with deep linking
   const [currentPage, setCurrentPage] = useState<Page>('dashboard')
   const currentUser = mockUsers[0]
+
+  useEffect(() => {
+    const pageParam = searchParams.get('page')
+    if (pageParam && ['dashboard', 'profile', 'museum', 'leaderboard', 'settings'].includes(pageParam)) {
+      setCurrentPage(pageParam as Page)
+    }
+  }, [searchParams])
 
   const renderPage = () => {
     switch (currentPage) {

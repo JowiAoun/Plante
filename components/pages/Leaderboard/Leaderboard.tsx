@@ -3,7 +3,7 @@
  * Global leaderboard and friends rankings
  */
 
-import React from 'react';
+import Link from 'next/link';
 import { PixelAvatar } from '@/components/PixelAvatar';
 import { mockUsers } from '@/mocks/data';
 import './Leaderboard.css';
@@ -27,10 +27,12 @@ export const Leaderboard: React.FC = () => {
       <div className="leaderboard__podium">
         {/* Second place */}
         <div className="leaderboard__podium-spot leaderboard__podium-spot--2">
-          <div className="leaderboard__podium-avatar leaderboard__podium-avatar--silver">
-             <PixelAvatar username={topThree[1]?.username} seed={topThree[1]?.avatarSeed} size="medium" />
-          </div>
-          <span className="leaderboard__podium-name">{topThree[1]?.displayName}</span>
+          <Link href={`/user/${topThree[1]?.id}`} className="leaderboard__link">
+            <div className="leaderboard__podium-avatar leaderboard__podium-avatar--silver">
+               <PixelAvatar username={topThree[1]?.username} seed={topThree[1]?.avatarSeed} size="medium" />
+            </div>
+            <span className="leaderboard__podium-name">{topThree[1]?.displayName}</span>
+          </Link>
           <span className="leaderboard__podium-xp">{topThree[1]?.xp} XP</span>
           <div className="leaderboard__podium-stand leaderboard__podium-stand--silver">2</div>
         </div>
@@ -38,20 +40,24 @@ export const Leaderboard: React.FC = () => {
         {/* First place */}
         <div className="leaderboard__podium-spot leaderboard__podium-spot--1">
           <span className="leaderboard__crown">👑</span>
-          <div className="leaderboard__podium-avatar leaderboard__podium-avatar--gold">
-             <PixelAvatar username={topThree[0]?.username} seed={topThree[0]?.avatarSeed} size="medium" />
-          </div>
-          <span className="leaderboard__podium-name">{topThree[0]?.displayName}</span>
+          <Link href={`/user/${topThree[0]?.id}`} className="leaderboard__link">
+            <div className="leaderboard__podium-avatar leaderboard__podium-avatar--gold">
+               <PixelAvatar username={topThree[0]?.username} seed={topThree[0]?.avatarSeed} size="medium" />
+            </div>
+            <span className="leaderboard__podium-name">{topThree[0]?.displayName}</span>
+          </Link>
           <span className="leaderboard__podium-xp">{topThree[0]?.xp} XP</span>
           <div className="leaderboard__podium-stand leaderboard__podium-stand--gold">1</div>
         </div>
 
         {/* Third place */}
         <div className="leaderboard__podium-spot leaderboard__podium-spot--3">
-          <div className="leaderboard__podium-avatar leaderboard__podium-avatar--bronze">
-             <PixelAvatar username={topThree[2]?.username} seed={topThree[2]?.avatarSeed} size="medium" />
-          </div>
-          <span className="leaderboard__podium-name">{topThree[2]?.displayName}</span>
+          <Link href={`/user/${topThree[2]?.id}`} className="leaderboard__link">
+            <div className="leaderboard__podium-avatar leaderboard__podium-avatar--bronze">
+               <PixelAvatar username={topThree[2]?.username} seed={topThree[2]?.avatarSeed} size="medium" />
+            </div>
+            <span className="leaderboard__podium-name">{topThree[2]?.displayName}</span>
+          </Link>
           <span className="leaderboard__podium-xp">{topThree[2]?.xp} XP</span>
           <div className="leaderboard__podium-stand leaderboard__podium-stand--bronze">3</div>
         </div>
@@ -75,12 +81,14 @@ export const Leaderboard: React.FC = () => {
                   {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
                 </td>
                 <td className="leaderboard__user">
-                  <div className="leaderboard__user-wrapper">
-                    <div className="leaderboard__user-avatar">
-                      <PixelAvatar username={user.username} seed={user.avatarSeed} size="small" />
+                  <Link href={`/user/${user.id}`} className="leaderboard__link-row">
+                    <div className="leaderboard__user-wrapper">
+                      <div className="leaderboard__user-avatar">
+                        <PixelAvatar username={user.username} seed={user.avatarSeed} size="small" />
+                      </div>
+                      <span className="leaderboard__user-name">{user.displayName}</span>
                     </div>
-                    <span className="leaderboard__user-name">{user.displayName}</span>
-                  </div>
+                  </Link>
                 </td>
                 <td className="leaderboard__level">Lv.{user.level}</td>
                 <td className="leaderboard__xp">{user.xp.toLocaleString()}</td>
