@@ -43,20 +43,22 @@ const getStatusColor = (status: Farm['status']): string => {
   }
 };
 
-// Create farm layout based on farms (same grid layout as museum)
+// Create farm layout based on farms (centered to avoid barn)
 const createFarmLayout = (farms: Farm[]): FarmLayout => {
   const GRID_WIDTH = 16;
   const GRID_HEIGHT = 10;
   const TILE_SIZE = 48;
   
-  // Position farms in 2 rows of 4 (same as museum achievements)
+  // Game area is 768x480, barn is on left side
+  // Position farms in center-right area (2 rows of 4)
   const farmSpots: FarmSpot[] = farms.slice(0, 8).map((farm, index) => {
     const row = Math.floor(index / 4);
     const col = index % 4;
     
-    // Position: row 0 at y=2, row 1 at y=6
-    const x = (col + 2) * TILE_SIZE * 1.5 + TILE_SIZE;
-    const y = (row === 0 ? 2 : 6) * TILE_SIZE;
+    // Shifted right to avoid barn - start at x=280, spacing of 110
+    const x = 280 + col * 110;
+    // Row 0 at y=200, row 1 at y=340
+    const y = row === 0 ? 200 : 340;
     
     return {
       id: `farm-${farm.id}`,
@@ -70,7 +72,7 @@ const createFarmLayout = (farms: Farm[]): FarmLayout => {
     gridWidth: GRID_WIDTH,
     gridHeight: GRID_HEIGHT,
     tileSize: TILE_SIZE,
-    spawnPoint: { x: GRID_WIDTH * TILE_SIZE / 2, y: GRID_HEIGHT * TILE_SIZE / 2 },
+    spawnPoint: { x: 450, y: 280 },
     farmSpots,
   };
 };
@@ -214,6 +216,16 @@ export const FarmGame: React.FC<FarmGameProps> = ({
                 {activeFarm.sensors.soil.value}{activeFarm.sensors.soil.unit}
               </span>
             </div>
+            {isOwnFarm && (
+              <div className="farm-game__popup-action">
+                <button
+                  className="farm-game__popup-btn"
+                  onClick={() => window.location.href = `/farms/${activeFarm.id}`}
+                >
+                  Go to Farm →
+                </button>
+              </div>
+            )}
           </div>
         )}
 

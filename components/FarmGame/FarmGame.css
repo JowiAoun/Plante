@@ -169,8 +169,12 @@
   background-color: rgba(0, 0, 0, 0.7);
   padding: 2px 6px;
   border-radius: 2px;
-  white-space: nowrap;
   text-shadow: 1px 1px 0 var(--color-black);
+  max-width: 80px;
+  text-align: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 /* Farm info popup */
@@ -231,6 +235,26 @@
 
 .farm-game__popup-sensor-icon {
   font-size: 12px;
+}
+
+.farm-game__popup-action {
+  margin-top: 12px;
+}
+
+.farm-game__popup-btn {
+  font-family: var(--font-game);
+  font-size: 10px;
+  color: var(--color-text);
+  background-color: var(--color-primary);
+  border: 2px solid var(--color-accent);
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+.farm-game__popup-btn:hover {
+  background-color: var(--color-accent);
+  color: var(--color-black);
 }
 
 /* Mobile D-pad */
