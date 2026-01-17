@@ -77,7 +77,7 @@ const createFarmLayout = (farms: Farm[]): FarmLayout => {
     gridWidth: GRID_WIDTH,
     gridHeight: GRID_HEIGHT,
     tileSize: TILE_SIZE,
-    spawnPoint: { x: 450, y: 280 },
+    spawnPoint: { x: 150, y: 250 }, // Start at barn entrance
     farmSpots,
   };
 };
@@ -171,7 +171,7 @@ export const FarmGame: React.FC<FarmGameProps> = ({
 
       {/* Title banner */}
       <div className="farm-game__banner">
-        <span className="farm-game__title">🌾 {isOwnFarm ? 'YOUR FARM' : `${owner.displayName.toUpperCase()}'S FARM`} 🌾</span>
+        <span className="farm-game__title">{isOwnFarm ? 'YOUR FARM' : `${owner.displayName.toUpperCase()}'S FARM`}</span>
       </div>
 
       <div 

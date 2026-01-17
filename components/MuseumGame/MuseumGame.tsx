@@ -156,7 +156,7 @@ export const MuseumGame: React.FC<MuseumGameProps> = ({
 
       {/* Title banner */}
       <div className="museum-game__banner">
-        <span className="museum-game__title">🏛️ {ownerName ? `${ownerName.toUpperCase()}'S MUSEUM` : 'YOUR MUSEUM'} 🏛️</span>
+        <span className="museum-game__title">{ownerName ? `${ownerName.toUpperCase()}'S MUSEUM` : 'YOUR MUSEUM'}</span>
       </div>
 
       <div 
