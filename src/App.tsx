@@ -1,78 +1,90 @@
 /**
  * Plante - Main Application
- * Pixel-art UI for plant monitoring
+ * Pixel-art plant monitoring UI
  */
 
 import { useState } from 'react';
-import { FarmCard } from './components/FarmCard';
-import { mockFarms } from './mocks/data';
-import type { Farm } from './types';
+import { AppShell } from './components/AppShell';
+import { Dashboard } from './pages/Dashboard';
+import { Profile } from './pages/Profile';
+import { Leaderboard } from './pages/Leaderboard';
+import { Settings } from './pages/Settings';
+import { mockUsers, mockNotifications } from './mocks/data';
 import './App.css';
 
+type Page = 'dashboard' | 'profile' | 'leaderboard' | 'settings';
+
 function App() {
-  const [selectedFarm, setSelectedFarm] = useState<Farm | null>(null);
+  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
+  const currentUser = mockUsers[0];
+
+  // Simple hash-based navigation
+  const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const href = e.currentTarget.getAttribute('href');
+    if (href) {
+      const page = href.replace('#', '') as Page;
+      setCurrentPage(page);
+    }
+  };
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'profile':
+        return <Profile user={currentUser} />;
+      case 'leaderboard':
+        return <Leaderboard />;
+      case 'settings':
+        return <Settings />;
+      default:
+        return <Dashboard />;
+    }
+  };
 
   return (
-    <div className="app">
-      {/* Header */}
-      <header className="app__header nes-container is-dark">
-        <h1 className="app__title">🌱 Plante</h1>
-        <p className="app__subtitle">Pixel-art Plant Monitoring</p>
-      </header>
+    <AppShell
+      user={currentUser}
+      notifications={mockNotifications}
+    >
+      {/* Navigation tabs */}
+      <nav className="app-nav">
+        <a
+          href="#dashboard"
+          className={`app-nav__link ${currentPage === 'dashboard' ? 'app-nav__link--active' : ''}`}
+          onClick={handleNavigation}
+        >
+          🏠 Dashboard
+        </a>
+        <a
+          href="#profile"
+          className={`app-nav__link ${currentPage === 'profile' ? 'app-nav__link--active' : ''}`}
+          onClick={handleNavigation}
+        >
+          👤 Profile
+        </a>
+        <a
+          href="#leaderboard"
+          className={`app-nav__link ${currentPage === 'leaderboard' ? 'app-nav__link--active' : ''}`}
+          onClick={handleNavigation}
+        >
+          🏆 Leaderboard
+        </a>
+        <a
+          href="#settings"
+          className={`app-nav__link ${currentPage === 'settings' ? 'app-nav__link--active' : ''}`}
+          onClick={handleNavigation}
+        >
+          ⚙️ Settings
+        </a>
+      </nav>
 
-      {/* Main Content */}
-      <main className="app__main">
-        <section className="app__section">
-          <h2>Your Farms</h2>
-          <div className="app__farm-grid">
-            {mockFarms.map((farm) => (
-              <FarmCard
-                key={farm.id}
-                farm={farm}
-                selected={selectedFarm?.id === farm.id}
-                onSelect={setSelectedFarm}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* Selected Farm Detail */}
-        {selectedFarm && (
-          <section className="app__section nes-container is-dark">
-            <h2>Selected: {selectedFarm.name}</h2>
-            <div className="app__detail">
-              <p>
-                <strong>Status:</strong>{' '}
-                <span className={`status-${selectedFarm.status}`}>
-                  {selectedFarm.status.toUpperCase()}
-                </span>
-              </p>
-              <p>
-                <strong>Temperature:</strong> {selectedFarm.sensors.temp.value}
-                {selectedFarm.sensors.temp.unit}
-              </p>
-              <p>
-                <strong>Humidity:</strong> {selectedFarm.sensors.humidity.value}
-                {selectedFarm.sensors.humidity.unit}
-              </p>
-              <p>
-                <strong>Soil:</strong> {selectedFarm.sensors.soil.value}
-                {selectedFarm.sensors.soil.unit}
-              </p>
-              <div className="app__actions">
-                <button className="nes-btn is-primary">Water Now</button>
-                <button className="nes-btn is-warning">Open Hatch</button>
-              </div>
-            </div>
-          </section>
-        )}
-      </main>
-
-      {/* Footer */}
-      <footer className="app__footer">
-        <p>Phase 0 - Scaffold Demo | MSW Active</p>
-      </footer>
-    </div>
+      {/* Page content */}
+      <div className="app-content">
+        {renderPage()}
+      </div>
+    </AppShell>
   );
 }
 
