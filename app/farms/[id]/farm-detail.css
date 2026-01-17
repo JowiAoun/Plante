@@ -82,6 +82,7 @@
 /* Sensors */
 .farm-detail__sensors {
   margin-bottom: 24px;
+  margin-top: 24px;
 }
 
 .farm-detail__sensors h2 {
@@ -92,9 +93,23 @@
 }
 
 .farm-detail__sensor-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* Force badges to expand and center their content */
+.farm-detail__sensor-grid .sensor-badge {
+  flex: 1;
+  min-width: 140px;
+  justify-content: center;
+  width: 100%; /* Ensure it fills flex item width */
+}
+
+/* Center text content within badges */
+.farm-detail__sensor-grid .sensor-badge .sensor-badge__content {
+  align-items: center;
 }
 
 .farm-detail__sensor-card {

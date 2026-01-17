@@ -66,6 +66,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         user={user}
         notifications={notifications}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        onAvatarClick={() => onNavigate?.('profile')}
       />
 
       {/* Main layout area */}
@@ -75,7 +76,23 @@ export const AppShell: React.FC<AppShellProps> = ({
           className={`app-shell__sidebar ${sidebarOpen ? 'app-shell__sidebar--open' : ''}`}
         >
           <nav className="app-shell__sidebar-nav" aria-label="Main navigation">
-            {navItems.map(({ page, icon, label }) => (
+            {navItems.filter(item => item.page !== 'settings' && item.page !== 'profile').map(({ page, icon, label }) => (
+              <a
+                key={page}
+                href={`#${page}`}
+                className={`app-shell__sidebar-link ${currentPage === page ? 'app-shell__sidebar-link--active' : ''}`}
+                onClick={(e) => handleNavClick(e, page)}
+                aria-current={currentPage === page ? 'page' : undefined}
+              >
+                <span className="app-shell__sidebar-icon">{icon}</span>
+                <span className="app-shell__sidebar-label">{label}</span>
+              </a>
+            ))}
+          </nav>
+
+          {/* Bottom navigation (Settings) */}
+          <nav className="app-shell__sidebar-nav app-shell__sidebar-nav--bottom" aria-label="Secondary navigation">
+            {navItems.filter(item => item.page === 'settings').map(({ page, icon, label }) => (
               <a
                 key={page}
                 href={`#${page}`}

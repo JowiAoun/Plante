@@ -6,6 +6,7 @@
  */
 
 import React, { useState } from 'react';
+import { PixelAvatar } from '@/components/PixelAvatar';
 import { AchievementBadge } from '@/components/../components/AchievementBadge';
 import { ActionButton } from '@/components/../components/ActionButton';
 import { LevelUpModal } from '@/components/../components/LevelUpModal';
@@ -41,7 +42,11 @@ export const Profile: React.FC<ProfileProps> = ({
       {/* Profile Header */}
       <header className="profile__header nes-container is-dark">
         <div className="profile__avatar">
-          <span className="profile__avatar-icon">👤</span>
+          <PixelAvatar 
+            username={user.username} 
+            seed={user.avatarSeed || user.username}
+            size="large" 
+          />
         </div>
         <div className="profile__info">
           <h1 className="profile__name">{user.displayName}</h1>

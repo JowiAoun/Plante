@@ -6,6 +6,7 @@
 import React from 'react';
 import type { User } from '@/types';
 import { NotificationBell } from '@/components/NotificationBell';
+import { UserProfile } from '@/components/UserProfile';
 import type { Notification } from '@/types';
 import './TopBar.css';
 
@@ -57,14 +58,11 @@ export const TopBar: React.FC<TopBarProps> = ({
         />
 
         {user ? (
-          <button
-            className="top-bar__avatar"
+          <UserProfile 
+            user={user}
+            size="small"
             onClick={onAvatarClick}
-            aria-label={`User menu for ${user.displayName}`}
-          >
-            <span className="top-bar__avatar-icon" aria-hidden="true">👤</span>
-            <span className="top-bar__avatar-level">Lv.{user.level}</span>
-          </button>
+          />
         ) : (
           <button className="top-bar__login nes-btn is-primary">
             Login

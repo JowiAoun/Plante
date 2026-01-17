@@ -44,7 +44,7 @@ export const mockUsers: User[] = [
 // Mock Farms
 export const mockFarms: Farm[] = [
   {
-    id: 'farm-001',
+    id: 'a8x9de',
     name: 'Tomato Paradise',
     ownerId: 'user-001',
     status: 'healthy',
@@ -57,7 +57,7 @@ export const mockFarms: Farm[] = [
     lastSeen: new Date().toISOString(),
   },
   {
-    id: 'farm-002',
+    id: 'b7y2cf',
     name: 'Herb Haven',
     ownerId: 'user-001',
     status: 'warning',
@@ -70,7 +70,7 @@ export const mockFarms: Farm[] = [
     lastSeen: new Date().toISOString(),
   },
   {
-    id: 'farm-003',
+    id: 'c5z4ab',
     name: 'Pepper Palace',
     ownerId: 'user-002',
     status: 'critical',
@@ -83,7 +83,7 @@ export const mockFarms: Farm[] = [
     lastSeen: new Date(Date.now() - 3600000).toISOString(),
   },
   {
-    id: 'farm-004',
+    id: 'd3w1gh',
     name: 'Succulent Sanctuary',
     ownerId: 'user-003',
     status: 'healthy',

@@ -70,36 +70,27 @@ export default function FarmPage({ params }: FarmPageProps) {
       <section className="farm-detail__sensors">
         <h2>Sensor Readings</h2>
         <div className="farm-detail__sensor-grid">
-          <div className="farm-detail__sensor-card nes-container is-dark">
-            <SensorBadge
-              type="temp"
-              value={farm.sensors.temp.value}
-              unit={farm.sensors.temp.unit}
-              trend={farm.sensors.temp.trend}
-              showLabel
-            />
-            <span className="farm-detail__sensor-name">Temperature</span>
-          </div>
-          <div className="farm-detail__sensor-card nes-container is-dark">
-            <SensorBadge
-              type="humidity"
-              value={farm.sensors.humidity.value}
-              unit={farm.sensors.humidity.unit}
-              trend={farm.sensors.humidity.trend}
-              showLabel
-            />
-            <span className="farm-detail__sensor-name">Humidity</span>
-          </div>
-          <div className="farm-detail__sensor-card nes-container is-dark">
-            <SensorBadge
-              type="soil"
-              value={farm.sensors.soil.value}
-              unit={farm.sensors.soil.unit}
-              trend={farm.sensors.soil.trend}
-              showLabel
-            />
-            <span className="farm-detail__sensor-name">Soil Moisture</span>
-          </div>
+          <SensorBadge
+            type="temp"
+            value={farm.sensors.temp.value}
+            unit={farm.sensors.temp.unit}
+            trend={farm.sensors.temp.trend}
+            showLabel
+          />
+          <SensorBadge
+            type="humidity"
+            value={farm.sensors.humidity.value}
+            unit={farm.sensors.humidity.unit}
+            trend={farm.sensors.humidity.trend}
+            showLabel
+          />
+          <SensorBadge
+            type="soil"
+            value={farm.sensors.soil.value}
+            unit={farm.sensors.soil.unit}
+            trend={farm.sensors.soil.trend}
+            showLabel
+          />
         </div>
       </section>
 

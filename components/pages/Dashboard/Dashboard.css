@@ -1,7 +1,15 @@
 /* Farm link wrapper */
 .dashboard__farm-link {
-  text-decoration: none;
+  text-decoration: none !important;
   display: block;
+  color: inherit;
+}
+
+.dashboard__farm-link:hover,
+.dashboard__farm-link:focus,
+.dashboard__farm-link:active {
+  text-decoration: none !important;
+  color: inherit;
 }
 
 .dashboard {
