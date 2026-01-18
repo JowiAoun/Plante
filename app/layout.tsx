@@ -13,7 +13,23 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('plante-theme');
+                  if (theme && ['default', 'spring', 'night', 'neon'].includes(theme)) {
+                    document.documentElement.setAttribute('data-theme', theme);
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body>
         <SessionProvider>{children}</SessionProvider>
       </body>

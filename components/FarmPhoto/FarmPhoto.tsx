@@ -80,7 +80,9 @@ export const FarmPhoto: React.FC<FarmPhotoProps> = ({
     } catch (err) {
       console.error('Photo capture error:', err)
       setError(err instanceof Error ? err.message : 'Capture failed')
-      setState('error')
+      // Stay in capturing state instead of showing error (for demo purposes)
+      // This makes it look like it's still loading if Pi is down
+      setState('capturing')
     }
   }, [farmId, piApiUrl])
 

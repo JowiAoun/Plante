@@ -86,6 +86,15 @@ export const Settings: React.FC = () => {
     fetchPreferences();
   }, []);
 
+  // Load theme from localStorage on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('plante-theme') as Theme | null;
+    if (savedTheme && ['default', 'spring', 'night', 'neon'].includes(savedTheme)) {
+      setCurrentTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+  }, []);
+
   const themes: { id: Theme; name: string; emoji: string; colors: string[] }[] = [
     { id: 'default', name: 'Default', emoji: '🎮', colors: ['#1D2B53', '#29ADFF', '#FFEC27'] },
     { id: 'spring', name: 'Spring', emoji: '🌸', colors: ['#1D2B53', '#00E436', '#FF77A8'] },
@@ -96,6 +105,7 @@ export const Settings: React.FC = () => {
   const handleThemeChange = (theme: Theme) => {
     setCurrentTheme(theme);
     document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('plante-theme', theme);
     setToast(`Theme changed to ${theme}`);
   };
 
