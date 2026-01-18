@@ -28,11 +28,10 @@ class PlantCamera:
         os.makedirs(self.save_dir, exist_ok=True)
         
         self.camera = Picamera2()
-        # Configure for still photos with 90° clockwise rotation and horizontal flip
+        # Configure for still photos
         config = self.camera.create_still_configuration(
             main={"size": (4608, 2592)},  # Full resolution
-            display=None,
-            transform=libcamera.Transform(rotation=90, hflip=True)
+            display=None
         )
         self.camera.configure(config)
         

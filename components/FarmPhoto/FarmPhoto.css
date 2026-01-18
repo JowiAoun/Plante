@@ -115,6 +115,7 @@
   object-fit: cover;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+  transform: rotate(-90deg) scale(1.35);
   animation: reveal 0.3s ease-out;
 }
 
