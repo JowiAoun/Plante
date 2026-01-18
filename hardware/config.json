@@ -1,0 +1,28 @@
+{
+    "thresholds": {
+        "temperature": {
+            "min": 15,
+            "max": 28,
+            "unit": "celsius"
+        },
+        "humidity": {
+            "min": 30,
+            "max": 70,
+            "unit": "percent"
+        },
+        "soil_moisture": {
+            "min": 20,
+            "unit": "percent"
+        },
+        "light": {
+            "min": 200,
+            "unit": "lux"
+        }
+    },
+    "servo": {
+        "lid_open": 90,
+        "lid_closed": 0
+    },
+    "poll_interval": 30,
+    "actions_enabled": true
+}
