@@ -9,21 +9,29 @@ import { NextResponse } from 'next/server';
 export default withAuth(
   function middleware(req) {
     const token = req.nextauth.token;
-    const isProfileSetup = req.nextUrl.pathname === '/profile-setup';
+    const pathname = req.nextUrl.pathname;
+    const isProfileSetup = pathname === '/profile-setup';
+    const hasCompletedProfile = !!token?.profileCompletedAt;
 
     // If no token, withAuth will redirect to login
     if (!token) {
       return NextResponse.next();
     }
 
-    // Redirect to profile-setup if profile not completed (for protected routes)
-    if (!isProfileSetup && !token.profileCompletedAt) {
-      return NextResponse.redirect(new URL('/profile-setup', req.url));
+    // User on profile-setup page
+    if (isProfileSetup) {
+      // If profile already completed, redirect to dashboard
+      if (hasCompletedProfile) {
+        return NextResponse.redirect(new URL('/dashboard', req.url));
+      }
+      // Otherwise, allow them to complete profile setup
+      return NextResponse.next();
     }
 
-    // Redirect away from profile-setup if already completed
-    if (isProfileSetup && token.profileCompletedAt) {
-      return NextResponse.redirect(new URL('/dashboard', req.url));
+    // User on protected routes (not profile-setup)
+    // If profile not completed, redirect to profile-setup
+    if (!hasCompletedProfile) {
+      return NextResponse.redirect(new URL('/profile-setup', req.url));
     }
 
     return NextResponse.next();
