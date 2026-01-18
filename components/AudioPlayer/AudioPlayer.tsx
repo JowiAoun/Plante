@@ -36,7 +36,14 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
     useEffect(() => {
         const audio = audioRef.current;
-        if (!audio || !audioUrl) return;
+        if (!audio) return;
+
+        // If no audioUrl, stop any playing audio
+        if (!audioUrl) {
+            audio.pause();
+            audio.currentTime = 0;
+            return;
+        }
 
         setIsLoading(true);
 

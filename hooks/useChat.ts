@@ -57,11 +57,16 @@ export function useChat(): UseChatReturn {
         }
     }, []);
 
-    // Save voice preference to localStorage
+    // Save voice preference to localStorage and stop audio when disabling
     const toggleVoice = useCallback(() => {
         setVoiceEnabled((prev) => {
             const newValue = !prev;
             localStorage.setItem(VOICE_PREFERENCE_KEY, String(newValue));
+            // Stop any playing audio when disabling voice
+            if (!newValue) {
+                setAudioUrl(null);
+                setIsSpeaking(false);
+            }
             return newValue;
         });
     }, []);
