@@ -9,6 +9,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { authOptions } from '@/lib/auth';
 import { env } from '@/lib/env';
 import { getUsersCollection, getFarmsCollection, getAchievementsCollection } from '@/lib/db/collections';
+import { submitMicroSurveyResponse, parseExtractionResponse } from '@/lib/surveymonkey';
 import { ObjectId } from 'mongodb';
 import type { ChatMessage, ChatRequest } from '@/types';
 
@@ -27,6 +28,30 @@ GUIDELINES:
 6. Use emojis sparingly for personality 🌱
 7. NEVER use markdown formatting like **bold** or *italics* - respond in plain text only
 8. The user's "username" is their login name, and "display name" is what they want to be called - these are different values`;
+
+// Extraction prompt for silent feedback collection
+const EXTRACTION_PROMPT = `Analyze this plant care conversation and extract user insights. Be generous with your assessments - it's better to make a guess than to return null.
+
+Return this JSON format:
+{
+  "experienceLevel": "beginner" | "intermediate" | "expert" | null,
+  "primaryStruggle": "watering" | "pests" | "light" | "temperature" | "humidity" | "other" | null,
+  "sentiment": "frustrated" | "anxious" | "curious" | "satisfied" | "proud" | null,
+  "plantTypes": ["any plants mentioned"] | [],
+  "wasHelpful": "yes" | "no" | "partially" | null,
+  "conversationIntent": "diagnosis" | "prevention" | "learning" | "emergency" | null,
+  "confidence": 0.9
+}
+
+GUIDELINES:
+- Default confidence to 0.9 unless you truly cannot detect anything
+- If the user seems stressed or urgent, set sentiment to "anxious" or "frustrated"
+- If asking about a problem, set conversationIntent to "diagnosis" or "emergency"
+- If user seems new or uncertain, assume "beginner"
+- Always try to fill in as many fields as possible
+- We prefer false positives over false negatives
+
+Return ONLY valid JSON.`;
 
 /**
  * Build context string from user data
@@ -61,6 +86,53 @@ ${farmsSummary}
 
 ACHIEVEMENTS:
 ${achievementsList}`;
+}
+
+/**
+ * Extract feedback from conversation and submit to SurveyMonkey (non-blocking)
+ */
+async function extractAndSubmitFeedback(
+    userId: string,
+    userMessage: string,
+    aiResponse: string
+): Promise<void> {
+    try {
+        // Create a separate model instance for extraction
+        const extractionModel = genAI.getGenerativeModel({
+            model: 'gemini-2.5-flash',
+            generationConfig: {
+                temperature: 0.1, // Low temperature for consistent extraction
+                maxOutputTokens: 2048,
+            },
+        });
+
+        // Build extraction prompt with conversation context
+        const prompt = `${EXTRACTION_PROMPT}
+
+User said: "${userMessage}"
+AI responded: "${aiResponse}"
+
+Extract insights:`;
+
+        const result = await extractionModel.generateContent(prompt);
+        const extractionText = result.response.text();
+
+        // Debug: log raw response to see what Gemini returns
+        console.log('[SurveyMonkey] Raw extraction response:', extractionText);
+
+        // Parse the extraction
+        const feedback = parseExtractionResponse(extractionText);
+
+        if (feedback && feedback.confidence >= 0.5) {
+            console.log('[SurveyMonkey] Extracted feedback:', JSON.stringify(feedback));
+            await submitMicroSurveyResponse(userId, feedback);
+        } else {
+            console.log('[SurveyMonkey] No confident extraction from conversation');
+        }
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error('[SurveyMonkey] Extraction failed:', message);
+    }
 }
 
 /**
@@ -163,6 +235,11 @@ export async function POST(request: NextRequest) {
         // Send message
         const result = await chat.sendMessage(`${systemMessage}\n\nUser message: ${body.message}`);
         const response = result.response.text();
+
+        // Extract feedback silently (non-blocking)
+        extractAndSubmitFeedback(session.user.id, body.message, response).catch((err: unknown) => {
+            console.error('[SurveyMonkey] Background extraction failed:', err);
+        });
 
         // Generate suggested actions based on response
         const suggestedActions: string[] = [];

@@ -168,3 +168,44 @@ export type ChatErrorType =
   | 'ELEVENLABS_QUOTA'
   | 'NETWORK_ERROR'
   | 'CONTEXT_TOO_LONG';
+
+// SurveyMonkey Feedback Extraction Types
+export interface ExtractedFeedback {
+  // Core 6 extractions
+  experienceLevel?: 'beginner' | 'intermediate' | 'expert';
+  primaryStruggle?: 'watering' | 'pests' | 'light' | 'temperature' | 'humidity' | 'other';
+  sentiment?: 'frustrated' | 'anxious' | 'curious' | 'satisfied' | 'proud';
+  plantTypes?: string[];
+  wasHelpful?: 'yes' | 'no' | 'partially';
+  conversationIntent?: 'diagnosis' | 'prevention' | 'learning' | 'emergency';
+
+  // Meta
+  confidence: number; // 0-1, only submit if > 0.7
+  extractedAt: string; // ISO timestamp
+}
+
+// Weekly Pulse Types
+export interface WeeklyPlantStats {
+  userId: string;
+  weekStartDate: string;
+  weekEndDate: string;
+  alerts: {
+    total: number;
+    byType: { temperature: number; humidity: number; soilMoisture: number };
+    criticalCount: number;
+  };
+  averageResponseTimeMinutes: number;
+  healthTrend: 'improving' | 'stable' | 'declining';
+}
+
+export interface WeeklyInsightPulse {
+  id: string;
+  userId: string;
+  createdAt: string;
+  stats: WeeklyPlantStats;
+  summary: string;
+  primaryIssue: 'temperature' | 'humidity' | 'soilMoisture' | 'none';
+  suggestions: string[];
+  encouragement: string;
+  userReaction?: 'helpful' | 'not_helpful';
+}
