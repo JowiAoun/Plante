@@ -10,6 +10,7 @@
 import time
 import spidev
 import lgpio
+import requests
 
 # ============================================================================
 # ADS1256 Configuration (Waveshare High-Precision AD/DA HAT)
@@ -328,6 +329,41 @@ def test_adc():
         raise
 
 
+def read_from_api(api_url: str = "http://localhost:8000"):
+    """Read soil moisture from the running API instead of direct GPIO access."""
+    print("Reading soil moisture via API...")
+    print(f"API URL: {api_url}")
+    print("=" * 50)
+    print()
+    
+    try:
+        count = 0
+        while True:
+            count += 1
+            try:
+                response = requests.get(f"{api_url}/sensors/soil", timeout=5)
+                if response.status_code == 200:
+                    data = response.json()
+                    moisture = data.get("value", "N/A")
+                    unit = data.get("unit", "%")
+                    print(f"[{count}] Moisture: {moisture:5.1f}{unit}")
+                elif response.status_code == 503:
+                    print(f"[{count}] Sensor unavailable - API returned 503")
+                else:
+                    print(f"[{count}] API error: {response.status_code}")
+            except requests.exceptions.ConnectionError:
+                print(f"[{count}] Cannot connect to API at {api_url}")
+                print("    Is the plante-api service running?")
+                print("    Check: sudo systemctl status plante-api")
+            except requests.exceptions.Timeout:
+                print(f"[{count}] API request timed out")
+            
+            time.sleep(1)
+            
+    except KeyboardInterrupt:
+        print("\nExiting...")
+
+
 def main():
     """Main function - read soil moisture continuously."""
     print("SparkFun Soil Moisture Sensor via Waveshare AD/DA HAT")
@@ -366,5 +402,10 @@ if __name__ == '__main__':
     
     if len(sys.argv) > 1 and sys.argv[1] == '--test-adc':
         test_adc()
-    else:
+    elif len(sys.argv) > 1 and sys.argv[1] == '--direct-gpio':
+        # Direct GPIO mode - for when API is stopped
         main()
+    else:
+        # Default: Use API mode (avoids GPIO conflicts with plante-api service)
+        api_url = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8000"
+        read_from_api(api_url)
