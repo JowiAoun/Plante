@@ -154,39 +154,15 @@ class DualServoController:
         print("\nDemo complete!")
     
     def test(self):
-        """Run smooth test sequence: 0 → 90 → 180 → 90 → 0 with smooth transitions."""
-        print("\n=== Servo Test Sequence (Smooth) ===\n")
+        """Run test sequence: 0 → 90 → 180 → 90 → 0."""
+        print("\n=== Servo Test Sequence ===\n")
         
-        def smooth_to(target, current, step=5, delay=0.05):
-            """Move smoothly without printing each step."""
-            if target > current:
-                angles = range(current, target + 1, step)
-            else:
-                angles = range(current, target - 1, -step)
-            for angle in angles:
-                self.send_command(f"both:{angle}")
-                time.sleep(delay)
-            self.send_command(f"both:{target}")  # Ensure exact target
+        positions = [0, 90, 180, 90, 0]
         
-        # Start at 0
-        print("Starting at 0°...")
-        self.send_command("both:0")
-        time.sleep(0.5)
-        
-        print("Smoothly moving 0° → 90°...")
-        smooth_to(90, 0)
-        time.sleep(0.3)
-        
-        print("Smoothly moving 90° → 180°...")
-        smooth_to(180, 90)
-        time.sleep(0.3)
-        
-        print("Smoothly moving 180° → 90°...")
-        smooth_to(90, 180)
-        time.sleep(0.3)
-        
-        print("Smoothly moving 90° → 0°...")
-        smooth_to(0, 90)
+        for angle in positions:
+            print(f"Both servos to {angle}°...")
+            self.set_servo("both", angle)
+            time.sleep(1.5)
             
         print("\nTest complete!")
         
