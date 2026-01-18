@@ -4,11 +4,56 @@
  */
 
 import { env } from '@/lib/env';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { WeeklyPlantStats, WeeklyInsightPulse, ExtractedFeedback } from '@/types';
 import { submitMicroSurveyResponse } from './surveymonkey';
 
-const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
+// OpenRouter API endpoint
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+
+interface OpenRouterResponse {
+    choices: {
+        message: {
+            content: string;
+        };
+    }[];
+    error?: {
+        message: string;
+    };
+}
+
+/**
+ * Call OpenRouter API
+ */
+async function callOpenRouter(prompt: string): Promise<string> {
+    const response = await fetch(OPENROUTER_API_URL, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${env.OPENROUTER_API_KEY}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': env.NEXTAUTH_URL,
+            'X-Title': 'Plante',
+        },
+        body: JSON.stringify({
+            model: env.OPENROUTER_MODEL,
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.7,
+            max_tokens: 512,
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `OpenRouter API error: ${response.status}`);
+    }
+
+    const data: OpenRouterResponse = await response.json();
+    
+    if (data.error) {
+        throw new Error(data.error.message);
+    }
+
+    return data.choices[0]?.message?.content || '';
+}
 
 /**
  * Generate a weekly insight pulse for a user
@@ -29,16 +74,7 @@ Return JSON only (no markdown, no explanation):
 
 Tone: Friendly plant enthusiast. Use 1-2 emojis. Focus on the most common alert type.`;
 
-    const model = genAI.getGenerativeModel({
-        model: 'gemini-2.5-flash',
-        generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 512,
-        },
-    });
-
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const text = await callOpenRouter(prompt);
 
     // Parse JSON from response
     const jsonMatch = text.match(/\{[\s\S]*\}/);

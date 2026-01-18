@@ -68,6 +68,7 @@ export const Settings: React.FC = () => {
   const [verificationCode, setVerificationCode] = useState('');
   const [verificationSent, setVerificationSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pollingInterval, setPollingInterval] = useState(5);
 
   // Fetch SMS preferences on mount
   useEffect(() => {
@@ -93,7 +94,22 @@ export const Settings: React.FC = () => {
       setCurrentTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
     }
+    // Load polling interval
+    const savedInterval = localStorage.getItem('plante-polling-interval');
+    if (savedInterval) {
+      const parsed = parseInt(savedInterval, 10);
+      if (parsed >= 1 && parsed <= 60) {
+        setPollingInterval(parsed);
+      }
+    }
   }, []);
+
+  const handlePollingIntervalChange = (value: number) => {
+    const clamped = Math.max(1, Math.min(60, value));
+    setPollingInterval(clamped);
+    localStorage.setItem('plante-polling-interval', String(clamped));
+    setToast(`Sensor refresh: ${clamped}s`);
+  };
 
   const themes: { id: Theme; name: string; emoji: string; colors: string[] }[] = [
     { id: 'default', name: 'Default', emoji: '🎮', colors: ['#1D2B53', '#29ADFF', '#FFEC27'] },
@@ -267,6 +283,41 @@ export const Settings: React.FC = () => {
               </div>
             </button>
           ))}
+        </div>
+      </section>
+
+      {/* Sensor Polling Interval */}
+      <section className="settings__section nes-container is-dark">
+        <h2 className="settings__section-title">📡 Sensor Refresh Rate</h2>
+        <div className="settings__polling">
+          <div className="settings__polling-label">
+            <span>Update sensors every:</span>
+            <span className="settings__polling-value">{pollingInterval}s</span>
+          </div>
+          <div className="settings__gauge">
+            <div className="settings__gauge-track">
+              {Array.from({ length: 12 }, (_, i) => {
+                // 12 segments: 1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60
+                const values = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60];
+                const value = values[i];
+                const isActive = pollingInterval >= value;
+                return (
+                  <button
+                    key={i}
+                    className={`settings__gauge-segment ${isActive ? 'settings__gauge-segment--active' : ''}`}
+                    onClick={() => handlePollingIntervalChange(value)}
+                    title={`${value}s`}
+                  />
+                );
+              })}
+            </div>
+            <div className="settings__gauge-labels">
+              <span>1s</span>
+              <span>30s</span>
+              <span>60s</span>
+            </div>
+          </div>
+          <p className="settings__polling-hint">Lower = faster updates, higher battery usage</p>
         </div>
       </section>
 

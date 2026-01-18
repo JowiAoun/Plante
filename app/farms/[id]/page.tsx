@@ -80,6 +80,49 @@ export default function FarmPage({ params }: FarmPageProps) {
     fetchFarm()
   }, [fetchFarm])
 
+  // Auto-sync with Pi sensors using configurable interval from settings
+  useEffect(() => {
+    // Read interval from localStorage (default 5s)
+    const getPollingInterval = () => {
+      const saved = localStorage.getItem('plante-polling-interval')
+      if (saved) {
+        const parsed = parseInt(saved, 10)
+        if (parsed >= 1 && parsed <= 60) return parsed * 1000
+      }
+      return 5000
+    }
+
+    let intervalId: NodeJS.Timeout
+
+    const startPolling = () => {
+      const intervalMs = getPollingInterval()
+      intervalId = setInterval(async () => {
+        try {
+          await fetch(`/api/farms/${id}/sync`, { method: 'POST' })
+          await fetchFarm()
+        } catch (error) {
+          console.error('Auto-sync error:', error)
+        }
+      }, intervalMs)
+    }
+
+    startPolling()
+
+    // Listen for settings changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'plante-polling-interval') {
+        clearInterval(intervalId)
+        startPolling()
+      }
+    }
+    window.addEventListener('storage', handleStorageChange)
+
+    return () => {
+      clearInterval(intervalId)
+      window.removeEventListener('storage', handleStorageChange)
+    }
+  }, [id, fetchFarm])
+
   const handleNavigate = (page: string) => {
     if (page === 'dashboard') router.push('/')
     else router.push(`/?page=${page}`)

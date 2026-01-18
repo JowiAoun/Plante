@@ -161,3 +161,75 @@
   margin-left: 8px;
 }
 
+/* Sensor Polling Gauge */
+.settings__polling {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings__polling-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--color-text);
+}
+
+.settings__polling-value {
+  font-family: var(--font-game);
+  font-size: 16px;
+  color: var(--color-accent);
+  background: var(--color-surface);
+  padding: 4px 12px;
+  border: 2px solid var(--color-border);
+}
+
+.settings__gauge {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings__gauge-track {
+  display: flex;
+  gap: 4px;
+  height: 32px;
+}
+
+.settings__gauge-segment {
+  flex: 1;
+  background: var(--color-surface);
+  border: 3px solid var(--color-border);
+  cursor: pointer;
+  transition: all 0.1s;
+  position: relative;
+}
+
+.settings__gauge-segment:hover {
+  border-color: var(--color-primary);
+  transform: scaleY(1.1);
+}
+
+.settings__gauge-segment--active {
+  background: linear-gradient(180deg, var(--color-accent) 0%, var(--color-primary) 100%);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 8px var(--color-accent);
+}
+
+.settings__gauge-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-game);
+  font-size: 8px;
+  color: var(--color-muted, #83769C);
+}
+
+.settings__polling-hint {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--color-muted, #83769C);
+  margin: 0;
+  font-style: italic;
+}

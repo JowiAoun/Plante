@@ -1,11 +1,10 @@
 /**
  * Chat API Route
- * POST /api/chat - Send message to Gemini AI and get response
+ * POST /api/chat - Send message to AI via OpenRouter and get response
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { authOptions } from '@/lib/auth';
 import { env } from '@/lib/env';
 import { getUsersCollection, getFarmsCollection, getAchievementsCollection } from '@/lib/db/collections';
@@ -13,8 +12,8 @@ import { submitMicroSurveyResponse, parseExtractionResponse } from '@/lib/survey
 import { ObjectId } from 'mongodb';
 import type { ChatMessage, ChatRequest } from '@/types';
 
-// Initialize Gemini
-const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
+// OpenRouter API endpoint
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 // System prompt for Plante AI assistant
 const SYSTEM_PROMPT = `You are Plante, a friendly and knowledgeable plant care assistant. You help users take care of their plants and farms.
@@ -52,6 +51,69 @@ GUIDELINES:
 - We prefer false positives over false negatives
 
 Return ONLY valid JSON.`;
+
+interface OpenRouterMessage {
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+}
+
+interface OpenRouterResponse {
+    choices: {
+        message: {
+            content: string;
+        };
+    }[];
+    error?: {
+        message: string;
+    };
+}
+
+/**
+ * Call OpenRouter API
+ */
+async function callOpenRouter(
+    messages: OpenRouterMessage[],
+    options: { temperature?: number; maxTokens?: number } = {}
+): Promise<string> {
+    const response = await fetch(OPENROUTER_API_URL, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${env.OPENROUTER_API_KEY}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': env.NEXTAUTH_URL,
+            'X-Title': 'Plante',
+        },
+        body: JSON.stringify({
+            model: env.OPENROUTER_MODEL,
+            messages,
+            temperature: options.temperature ?? 0.7,
+            max_tokens: options.maxTokens ?? 512,
+            top_p: 0.9,
+        }),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[OpenRouter] API error:', response.status, errorText);
+        let errorMessage = `OpenRouter API error: ${response.status}`;
+        try {
+            const errorData = JSON.parse(errorText);
+            errorMessage = errorData.error?.message || errorMessage;
+        } catch {
+            // Use raw text if not JSON
+            errorMessage = errorText || errorMessage;
+        }
+        throw new Error(errorMessage);
+    }
+
+    const data: OpenRouterResponse = await response.json();
+    
+    if (data.error) {
+        throw new Error(data.error.message);
+    }
+
+    return data.choices[0]?.message?.content || '';
+}
 
 /**
  * Build context string from user data
@@ -97,16 +159,6 @@ async function extractAndSubmitFeedback(
     aiResponse: string
 ): Promise<void> {
     try {
-        // Create a separate model instance for extraction
-        const extractionModel = genAI.getGenerativeModel({
-            model: 'gemini-2.5-flash',
-            generationConfig: {
-                temperature: 0.1, // Low temperature for consistent extraction
-                maxOutputTokens: 2048,
-            },
-        });
-
-        // Build extraction prompt with conversation context
         const prompt = `${EXTRACTION_PROMPT}
 
 User said: "${userMessage}"
@@ -114,10 +166,12 @@ AI responded: "${aiResponse}"
 
 Extract insights:`;
 
-        const result = await extractionModel.generateContent(prompt);
-        const extractionText = result.response.text();
+        const extractionText = await callOpenRouter(
+            [{ role: 'user', content: prompt }],
+            { temperature: 0.1, maxTokens: 2048 }
+        );
 
-        // Debug: log raw response to see what Gemini returns
+        // Debug: log raw response
         console.log('[SurveyMonkey] Raw extraction response:', extractionText);
 
         // Parse the extraction
@@ -136,14 +190,14 @@ Extract insights:`;
 }
 
 /**
- * Convert conversation history to Gemini format
+ * Convert conversation history to OpenRouter format
  */
-function convertHistory(history: ChatMessage[]): { role: 'user' | 'model'; parts: { text: string }[] }[] {
+function convertHistory(history: ChatMessage[]): OpenRouterMessage[] {
     return history
         .filter(msg => !msg.isLoading)
         .map(msg => ({
-            role: msg.role === 'assistant' ? 'model' as const : 'user' as const,
-            parts: [{ text: msg.content }],
+            role: msg.role === 'assistant' ? 'assistant' as const : 'user' as const,
+            content: msg.content,
         }));
 }
 
@@ -154,9 +208,9 @@ function convertHistory(history: ChatMessage[]): { role: 'user' | 'model'; parts
 export async function POST(request: NextRequest) {
     try {
         // Check for API key
-        if (!env.GEMINI_API_KEY) {
+        if (!env.OPENROUTER_API_KEY) {
             return NextResponse.json(
-                { error: 'Gemini API key not configured' },
+                { error: 'OpenRouter API key not configured' },
                 { status: 500 }
             );
         }
@@ -188,7 +242,6 @@ export async function POST(request: NextRequest) {
         // Combine user farms with the shared Kalanchoe farm
         const farms = [...userFarms];
         if (kalanchoeFarm) {
-            // Add Kalanchoe farm if not already in user's farms
             const hasKalanchoe = farms.some(f => f.deviceId === 'kalanchoe-farm');
             if (!hasKalanchoe) {
                 farms.push(kalanchoeFarm);
@@ -207,34 +260,22 @@ export async function POST(request: NextRequest) {
             achievements
         );
 
-        // Initialize chat
-        const model = genAI.getGenerativeModel({
-            model: 'gemini-2.5-flash',
-            generationConfig: {
-                temperature: 0.7,
-                topP: 0.9,
-                topK: 40,
-                maxOutputTokens: 512,
-            },
-        });
-
-        // Build conversation
+        // Build messages array for OpenRouter
         const systemMessage = `${SYSTEM_PROMPT}\n\n${userContext}`;
         const history = body.conversationHistory
             ? convertHistory(body.conversationHistory.slice(-20)) // Limit to last 20 messages
             : [];
 
-        const chat = model.startChat({
-            history: [
-                { role: 'user', parts: [{ text: 'Hello, I need help with my plants.' }] },
-                { role: 'model', parts: [{ text: `Hello! I'm Plante, your plant care assistant 🌱 I'm here to help you with all your gardening needs. ${userContext ? "I can see your farms and achievements - let me know how I can help!" : "What can I help you with today?"}` }] },
-                ...history,
-            ],
-        });
+        const messages: OpenRouterMessage[] = [
+            { role: 'system', content: systemMessage },
+            { role: 'user', content: 'Hello, I need help with my plants.' },
+            { role: 'assistant', content: `Hello! I'm Plante, your plant care assistant 🌱 I'm here to help you with all your gardening needs. ${userContext ? "I can see your farms and achievements - let me know how I can help!" : "What can I help you with today?"}` },
+            ...history,
+            { role: 'user', content: body.message },
+        ];
 
-        // Send message
-        const result = await chat.sendMessage(`${systemMessage}\n\nUser message: ${body.message}`);
-        const response = result.response.text();
+        // Send message to OpenRouter
+        const response = await callOpenRouter(messages);
 
         // Extract feedback silently (non-blocking)
         extractAndSubmitFeedback(session.user.id, body.message, response).catch((err: unknown) => {
@@ -263,7 +304,7 @@ export async function POST(request: NextRequest) {
 
         // Handle specific error types
         if (error instanceof Error) {
-            if (error.message.includes('quota') || error.message.includes('rate')) {
+            if (error.message.includes('quota') || error.message.includes('rate') || error.message.includes('429')) {
                 return NextResponse.json(
                     { error: 'AI is thinking too hard, please wait a moment', errorType: 'GEMINI_RATE_LIMIT' },
                     { status: 429 }
