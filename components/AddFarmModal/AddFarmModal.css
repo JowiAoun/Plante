@@ -1,0 +1,106 @@
+/**
+ * AddFarmModal Styles
+ */
+
+.add-farm-modal__overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.add-farm-modal {
+  width: 100%;
+  max-width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.add-farm-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.add-farm-modal__header h2 {
+  font-family: var(--font-game);
+  font-size: 14px;
+  color: var(--color-accent);
+  margin: 0;
+}
+
+.add-farm-modal__close {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: color 0.2s;
+}
+
+.add-farm-modal__close:hover:not(:disabled) {
+  color: var(--color-text);
+}
+
+.add-farm-modal__close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.add-farm-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.add-farm-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.add-farm-modal__field label {
+  font-family: var(--font-game);
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+
+.add-farm-modal__field input {
+  font-family: var(--font-game);
+  font-size: 12px;
+}
+
+.add-farm-modal__error {
+  font-family: var(--font-game);
+  font-size: 10px;
+  color: var(--color-critical);
+  background-color: rgba(244, 67, 54, 0.1);
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+.add-farm-modal__info {
+  font-family: var(--font-game);
+  font-size: 10px;
+  color: var(--color-text-muted);
+  background-color: rgba(212, 175, 55, 0.1);
+  padding: 12px;
+  border-radius: 4px;
+}
+
+.add-farm-modal__info p {
+  margin: 0;
+}
+
+.add-farm-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
