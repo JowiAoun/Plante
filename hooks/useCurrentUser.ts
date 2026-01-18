@@ -8,7 +8,7 @@
 import { useSession } from 'next-auth/react';
 import type { User } from '@/types';
 
-export function useCurrentUser(): { user: User | null; isLoading: boolean } {
+export function useCurrentUser(): { user: User | null; isLoading: boolean; chatAnalyticsConsent?: boolean } {
   const { data: session, status } = useSession();
 
   if (status === 'loading') {
@@ -28,5 +28,9 @@ export function useCurrentUser(): { user: User | null; isLoading: boolean } {
     xp: session.user.xp || 0,
   };
 
-  return { user, isLoading: false };
+  return {
+    user,
+    isLoading: false,
+    chatAnalyticsConsent: session.user.chatAnalyticsConsent,
+  };
 }

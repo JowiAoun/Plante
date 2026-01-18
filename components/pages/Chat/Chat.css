@@ -5,8 +5,8 @@
 .chat {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 64px);
-    /* Account for TopBar */
+    height: 100%;
+    /* Fill the available space in AppShell main content area */
     background-color: var(--color-background);
 }
 

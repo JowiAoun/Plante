@@ -18,6 +18,7 @@ declare module 'next-auth' {
       level?: number;
       xp?: number;
       profileCompletedAt?: Date;
+      chatAnalyticsConsent?: boolean;
     };
   }
 
@@ -28,6 +29,7 @@ declare module 'next-auth' {
     level?: number;
     xp?: number;
     profileCompletedAt?: Date;
+    chatAnalyticsConsent?: boolean;
   }
 }
 
@@ -40,6 +42,7 @@ declare module 'next-auth/jwt' {
     level?: number;
     xp?: number;
     profileCompletedAt?: Date;
+    chatAnalyticsConsent?: boolean;
   }
 }
 

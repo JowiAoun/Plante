@@ -6,10 +6,12 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { WeeklyInsightPulse } from '@/types';
 import { WeeklyPulseCard } from '@/components/WeeklyPulseCard';
 
 export default function WeeklyPulsePage() {
+    const router = useRouter();
     const [pulse, setPulse] = useState<WeeklyInsightPulse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -113,7 +115,33 @@ export default function WeeklyPulsePage() {
           opacity: 0.6;
           cursor: not-allowed;
         }
+        .weekly-pulse-page__back {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 16px;
+          margin-bottom: 16px;
+          font-size: 14px;
+          font-weight: bold;
+          background: transparent;
+          border: 2px solid var(--border-primary, #4a4a6a);
+          border-radius: 6px;
+          color: var(--text-secondary, #aaa);
+          cursor: pointer;
+          transition: all 0.1s;
+        }
+        .weekly-pulse-page__back:hover {
+          border-color: var(--text-primary, #fff);
+          color: var(--text-primary, #fff);
+        }
       `}</style>
+
+            <button
+                className="weekly-pulse-page__back"
+                onClick={() => router.back()}
+            >
+                ← Back
+            </button>
 
             <header className="weekly-pulse-page__header">
                 <h1 className="weekly-pulse-page__title">📊 Weekly Pulse</h1>

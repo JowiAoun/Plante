@@ -33,7 +33,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         const users = await getUsersCollection();
         const dbUser = await users.findOne({ _id: new ObjectId(user.id) });
-        
+
         if (dbUser) {
           token.username = dbUser.username;
           token.displayName = dbUser.displayName;
@@ -41,6 +41,7 @@ export const authOptions: NextAuthOptions = {
           token.level = dbUser.level ?? 1;
           token.xp = dbUser.xp ?? 0;
           token.profileCompletedAt = dbUser.profileCompletedAt;
+          token.chatAnalyticsConsent = dbUser.settings?.chatAnalyticsConsent;
         }
       }
 
@@ -49,7 +50,7 @@ export const authOptions: NextAuthOptions = {
         // Refresh user data from database
         const users = await getUsersCollection();
         const dbUser = await users.findOne({ _id: new ObjectId(token.id as string) });
-        
+
         if (dbUser) {
           token.username = dbUser.username;
           token.displayName = dbUser.displayName;
@@ -57,6 +58,7 @@ export const authOptions: NextAuthOptions = {
           token.level = dbUser.level;
           token.xp = dbUser.xp;
           token.profileCompletedAt = dbUser.profileCompletedAt;
+          token.chatAnalyticsConsent = dbUser.settings?.chatAnalyticsConsent;
         }
       }
 
@@ -72,6 +74,7 @@ export const authOptions: NextAuthOptions = {
         session.user.level = token.level as number | undefined;
         session.user.xp = token.xp as number | undefined;
         session.user.profileCompletedAt = token.profileCompletedAt as Date | undefined;
+        session.user.chatAnalyticsConsent = token.chatAnalyticsConsent as boolean | undefined;
       }
       return session;
     },

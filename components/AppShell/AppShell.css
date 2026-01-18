@@ -30,7 +30,7 @@
 
 /* Sidebar - always visible on desktop */
 .app-shell__sidebar {
-  width: 200px;
+  width: 240px;
   background-color: var(--color-surface);
   border-right: 4px solid var(--color-border);
   padding: 16px 8px;
