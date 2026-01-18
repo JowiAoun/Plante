@@ -50,14 +50,11 @@ export default function FarmExplorePage({ params }: FarmExplorePageProps) {
   // Create owner object from current user
   const owner = currentUser ? {
     id: currentUser.id,
-    displayName: currentUser.displayName || currentUser.name || 'Farmer',
+    username: currentUser.username,
+    displayName: currentUser.displayName || 'Farmer',
     avatarSeed: currentUser.avatarSeed || currentUser.id,
     level: currentUser.level || 1,
     xp: currentUser.xp || 0,
-    xpToNextLevel: currentUser.xpToNextLevel || 100,
-    farmCount: farms.length,
-    achievements: currentUser.achievements || [],
-    profileCompletedAt: currentUser.profileCompletedAt,
   } : null
 
   if (!currentUser || loading) {
