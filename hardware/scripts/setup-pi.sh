@@ -50,7 +50,7 @@ sudo apt-get update
 sudo apt-get install -y libcap-dev python3-dev liblgpio-dev swig
 
 # Install available GPIO packages - ignore errors for packages that don't exist
-for pkg in python3-libgpiod libgpiod-dev gpiod python3-gpiod; do
+for pkg in python3-libgpiod libgpiod-dev gpiod python3-gpiod python3-picamera2; do
     if apt-cache show "$pkg" &>/dev/null; then
         echo -e "Installing $pkg..."
         sudo apt-get install -y "$pkg" || true
@@ -74,12 +74,13 @@ sync
 sleep 1
 
 echo -e "Creating virtual environment at $VENV_DIR..."
-/usr/bin/python3 -m venv "$VENV_DIR"
+# Use --system-site-packages to access apt-installed packages like picamera2
+/usr/bin/python3 -m venv --system-site-packages "$VENV_DIR"
 
 if [ ! -f "$VENV_DIR/bin/python3" ]; then
     echo -e "${RED}Failed to create virtual environment with standard method.${NC}"
     echo -e "${YELLOW}Trying alternative method...${NC}"
-    /usr/bin/python3 -m venv --without-pip "$VENV_DIR"
+    /usr/bin/python3 -m venv --system-site-packages --without-pip "$VENV_DIR"
     "$VENV_DIR/bin/python3" -m ensurepip
 fi
 
