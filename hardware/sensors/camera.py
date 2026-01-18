@@ -10,9 +10,11 @@ from datetime import datetime
 
 try:
     from picamera2 import Picamera2
+    import libcamera
 except ImportError:
     print("picamera2 not installed. Run: pip install picamera2")
     Picamera2 = None
+    libcamera = None
 
 
 class PlantCamera:
@@ -26,10 +28,11 @@ class PlantCamera:
         os.makedirs(self.save_dir, exist_ok=True)
         
         self.camera = Picamera2()
-        # Configure for still photos
+        # Configure for still photos with 90° clockwise rotation and horizontal flip
         config = self.camera.create_still_configuration(
             main={"size": (4608, 2592)},  # Full resolution
-            display=None
+            display=None,
+            transform=libcamera.Transform(rotation=90, hflip=True)
         )
         self.camera.configure(config)
         
