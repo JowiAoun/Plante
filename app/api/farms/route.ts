@@ -103,7 +103,8 @@ export async function POST(request: NextRequest) {
         soilMoisture: { min: 30, max: 70 },
         light: { min: 200, max: 10000 },
       },
-      deviceId: body.deviceId || undefined,
+      // Only include deviceId if actually provided (sparse index requires field to be absent)
+      ...(body.deviceId && { deviceId: body.deviceId }),
       lastSeen: now,
       createdAt: now,
       updatedAt: now,
