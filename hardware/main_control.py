@@ -5,6 +5,9 @@ Plante Greenhouse Main Control Loop
 Continuously monitors sensors and controls the greenhouse lid
 based on configurable thresholds for Kalanchoe care.
 
+This script reads sensor data via the HTTP API (plante-api service)
+to avoid GPIO conflicts. The API must be running.
+
 Usage:
     python3 main_control.py           # Run control loop
     python3 main_control.py --once    # Single reading (debug)
@@ -17,24 +20,26 @@ import os
 from datetime import datetime
 from pathlib import Path
 
+import requests
+
 # Add current directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from api.services.sensor_service import SensorService
 from arduino.servo_control import DualServoController
 
 
 CONFIG_FILE = Path(__file__).parent / "config.json"
+API_URL = os.getenv("PLANTE_API_URL", "http://localhost:8000")
 
 
 class GreenhouseController:
     """Main greenhouse automation controller."""
     
     def __init__(self):
-        self.sensor_service = None
         self.servo_controller = None
         self.lid_is_open = False
         self.config = {}
+        self.api_url = API_URL
         
     def load_config(self) -> dict:
         """Load config from JSON file (reloads on each call for live updates)."""
@@ -58,13 +63,23 @@ class GreenhouseController:
             }
     
     def connect(self) -> bool:
-        """Initialize sensors and servo connection."""
-        print("[INFO] Initializing sensors...")
+        """Initialize servo connection and verify API is available."""
+        print(f"[INFO] Checking API at {self.api_url}...")
         try:
-            self.sensor_service = SensorService(poll_interval=5)
-            print(f"[INFO] Available sensors: {self.sensor_service.get_available_sensors()}")
-        except Exception as e:
-            print(f"[ERROR] Failed to initialize sensors: {e}")
+            response = requests.get(f"{self.api_url}/health", timeout=5)
+            if response.status_code == 200:
+                data = response.json()
+                sensors = data.get("sensors_available", [])
+                print(f"[INFO] API connected. Available sensors: {sensors}")
+            else:
+                print(f"[WARNING] API returned status {response.status_code}")
+        except requests.exceptions.ConnectionError:
+            print(f"[ERROR] Cannot connect to API at {self.api_url}")
+            print("        Is plante-api service running?")
+            print("        Check: sudo systemctl status plante-api")
+            return False
+        except requests.exceptions.Timeout:
+            print(f"[ERROR] API timeout at {self.api_url}")
             return False
         
         print("[INFO] Connecting to Arduino...")
@@ -164,21 +179,40 @@ class GreenhouseController:
                 print(f"[WARNING] Light level low: {light} lux < {light_thresh['min']} lux")
     
     def read_sensors(self) -> dict:
-        """Read all sensors and return values."""
+        """Read all sensors via HTTP API."""
+        readings = {
+            "temperature": None,
+            "humidity": None,
+            "soil_moisture": None,
+            "light": None,
+        }
+        
         try:
-            response = self.sensor_service.read_all(use_cache=False)
+            response = requests.get(f"{self.api_url}/sensors", timeout=10)
+            if response.status_code != 200:
+                print(f"[ERROR] API returned {response.status_code}")
+                return readings
             
-            readings = {
-                "temperature": response.temperature.value if response.temperature else None,
-                "humidity": response.humidity.value if response.humidity else None,
-                "soil_moisture": response.soil_moisture.value if response.soil_moisture else None,
-                "light": response.light.value if response.light else None,
-            }
+            data = response.json()
             
-            return readings
+            # Extract values from API response
+            if data.get("temperature"):
+                readings["temperature"] = data["temperature"].get("value")
+            if data.get("humidity"):
+                readings["humidity"] = data["humidity"].get("value")
+            if data.get("soil_moisture"):
+                readings["soil_moisture"] = data["soil_moisture"].get("value")
+            if data.get("light"):
+                readings["light"] = data["light"].get("value")
+                
+        except requests.exceptions.ConnectionError:
+            print(f"[ERROR] Cannot connect to API at {self.api_url}")
+        except requests.exceptions.Timeout:
+            print(f"[ERROR] API request timed out")
         except Exception as e:
             print(f"[ERROR] Sensor read failed: {e}")
-            return {}
+        
+        return readings
     
     def run_once(self) -> None:
         """Single control loop iteration (for testing)."""
@@ -217,8 +251,6 @@ class GreenhouseController:
         """Clean up resources."""
         if self.servo_controller:
             self.servo_controller.close()
-        if self.sensor_service:
-            self.sensor_service.cleanup()
 
 
 def main():
