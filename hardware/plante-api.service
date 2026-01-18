@@ -7,6 +7,7 @@ Type=simple
 User=jeremyfriesen
 WorkingDirectory=/home/jeremyfriesen/Plante/hardware
 Environment="PATH=/home/jeremyfriesen/Plante/hardware/venv/bin"
+Environment="PYTHONPATH=/home/jeremyfriesen/Plante/hardware"
 ExecStart=/home/jeremyfriesen/Plante/hardware/venv/bin/uvicorn api.main:app --host 0.0.0.0 --port 8000
 Restart=always
 RestartSec=10
