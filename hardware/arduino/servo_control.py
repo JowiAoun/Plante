@@ -32,27 +32,33 @@ class DualServoController:
             self.serial = serial.Serial(self.port, BAUD_RATE, timeout=2)
             time.sleep(2)  # Wait for Arduino reset
             
-            # Flush any garbage bytes from Arduino startup
+            # Aggressively drain garbage bytes from Arduino startup
             self.serial.reset_input_buffer()
-            time.sleep(0.5)
+            time.sleep(0.3)
             
-            # Read startup message (with error handling for bad bytes)
-            raw = self.serial.readline()
-            response = raw.decode('utf-8', errors='replace').strip()
-            
-            if "READY" in response:
-                print(f"Connected to Arduino on {self.port}")
-                return True
-            else:
-                # Sometimes need to read again after flush
+            # Try multiple times to find READY signal
+            for attempt in range(5):
+                # Read whatever is in the buffer
+                if self.serial.in_waiting > 0:
+                    garbage = self.serial.read(self.serial.in_waiting)
+                    # Try to find READY in the raw bytes
+                    if b'READY' in garbage:
+                        print(f"Connected to Arduino on {self.port}")
+                        return True
+                
+                # Try readline
                 raw = self.serial.readline()
-                response = raw.decode('utf-8', errors='replace').strip()
-                if "READY" in response:
+                if b'READY' in raw:
                     print(f"Connected to Arduino on {self.port}")
                     return True
-                print(f"Unexpected response: {response}")
-                print("(Try unplugging and replugging the Arduino)")
-                return False
+                    
+                time.sleep(0.2)
+            
+            # If we get here, no READY found
+            print("No READY signal received from Arduino.")
+            print("Try: 1) Unplug and replug Arduino, 2) Ensure dual_servo.ino is uploaded")
+            return False
+            
         except serial.SerialException as e:
             print(f"Serial error: {e}")
             print("Check: ls /dev/ttyACM* /dev/ttyUSB*")
