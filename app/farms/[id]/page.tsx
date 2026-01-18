@@ -7,8 +7,8 @@ import { ActionButton } from '@/components/ActionButton'
 import { Toast, ToastContainer } from '@/components/Toast'
 import { AppShell } from '@/components/AppShell'
 import { FarmPhoto } from '@/components/FarmPhoto'
-import { mockNotifications } from '@/mocks/data'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useNotifications } from '@/hooks/useNotifications'
 import { useRouter } from 'next/navigation'
 import type { Farm } from '@/types'
 import './farm-detail.css'
@@ -21,11 +21,14 @@ export default function FarmPage({ params }: FarmPageProps) {
   const { id } = use(params)
   const router = useRouter()
   const { user: currentUser } = useCurrentUser()
+  const { notifications, markAsRead } = useNotifications()
 
   const [farm, setFarm] = useState<Farm | null>(null)
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
   const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null)
+  const [lidIsOpen, setLidIsOpen] = useState(false)
+  const [lidLoading, setLidLoading] = useState(false)
 
   // Fetch farm from API
   const fetchFarm = useCallback(async () => {
@@ -149,16 +152,65 @@ export default function FarmPage({ params }: FarmPageProps) {
     }
   }
 
-  const handleHatchAction = () => {
-    setToast({ message: 'Hatch opening initiated!', variant: 'success' })
+  const handleHatchAction = async () => {
+    if (lidLoading) return
+    setLidLoading(true)
+
+    try {
+      const action = lidIsOpen ? 'close' : 'open'
+      const response = await fetch(`/api/farms/${id}/lid`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setLidIsOpen(data.isOpen)
+        setToast({
+          message: `🚪 Hatch ${data.isOpen ? 'opened' : 'closed'}!`,
+          variant: 'success'
+        })
+      } else {
+        setToast({
+          message: data.error || 'Failed to control hatch',
+          variant: 'error'
+        })
+      }
+    } catch (error) {
+      console.error('Failed to control hatch:', error)
+      setToast({ message: 'Hatch control failed', variant: 'error' })
+    } finally {
+      setLidLoading(false)
+    }
   }
+
+  // Fetch initial lid status
+  useEffect(() => {
+    const fetchLidStatus = async () => {
+      try {
+        const response = await fetch(`/api/farms/${id}/lid`)
+        if (response.ok) {
+          const data = await response.json()
+          setLidIsOpen(data.isOpen || false)
+        }
+      } catch (error) {
+        console.error('Failed to fetch lid status:', error)
+      }
+    }
+
+    if (id) {
+      fetchLidStatus()
+    }
+  }, [id])
 
   // Loading state
   if (loading) {
     return (
       <AppShell
         user={currentUser}
-        notifications={mockNotifications}
+        notifications={notifications}
         currentPage="dashboard"
         onNavigate={handleNavigate as unknown as (page: string) => void}
       >
@@ -174,7 +226,7 @@ export default function FarmPage({ params }: FarmPageProps) {
     return (
       <AppShell
         user={currentUser}
-        notifications={mockNotifications}
+        notifications={notifications}
         currentPage="dashboard"
         onNavigate={handleNavigate as unknown as (page: string) => void}
       >
@@ -198,7 +250,7 @@ export default function FarmPage({ params }: FarmPageProps) {
   return (
     <AppShell
       user={currentUser}
-      notifications={mockNotifications}
+      notifications={notifications}
       currentPage="dashboard"
       onNavigate={handleNavigate as unknown as (page: string) => void}
     >
@@ -286,12 +338,13 @@ export default function FarmPage({ params }: FarmPageProps) {
                   onClick={handleWaterAction}
                 />
                 <ActionButton
-                  label="Open Hatch"
+                  label={lidLoading ? 'Working...' : (lidIsOpen ? 'Close Hatch' : 'Open Hatch')}
                   variant="secondary"
-                  icon="🚪"
+                  icon={lidIsOpen ? '🔒' : '🚪'}
                   size="large"
                   fullWidth
                   onClick={handleHatchAction}
+                  disabled={lidLoading}
                 />
               </div>
             </section>

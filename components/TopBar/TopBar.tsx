@@ -46,7 +46,17 @@ export const TopBar: React.FC<TopBarProps> = ({
 
       {/* Logo */}
       <div className="top-bar__logo">
-        <span className="top-bar__logo-icon" aria-hidden="true">🌱</span>
+        <img
+          src="/logo.ico"
+          alt="Plante Logo"
+          className="top-bar__logo-icon"
+          style={{
+            width: '24px',
+            height: '24px',
+            objectFit: 'contain',
+            imageRendering: 'pixelated'
+          }}
+        />
         <span className="top-bar__logo-text">PLANTE</span>
       </div>
 
@@ -58,7 +68,7 @@ export const TopBar: React.FC<TopBarProps> = ({
         />
 
         {user ? (
-          <UserProfile 
+          <UserProfile
             user={user}
             size="small"
             onClick={onAvatarClick}

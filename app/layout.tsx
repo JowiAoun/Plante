@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   description: 'A gamified pixel-art plant monitoring application',
   icons: {
     icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
   },
 }
 

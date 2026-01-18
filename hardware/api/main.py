@@ -11,7 +11,7 @@ from fastapi import FastAPI, Depends, HTTPException, Security
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import APIKeyHeader
 
-from api.routers import health_router, sensors_router, camera_router, config_router
+from api.routers import health_router, sensors_router, camera_router, config_router, lid_router
 from api.services import get_sensor_service, get_camera_service
 
 # Load environment variables
@@ -85,6 +85,7 @@ app.include_router(health_router)
 app.include_router(sensors_router, dependencies=[Depends(verify_api_key)])
 app.include_router(camera_router, dependencies=[Depends(verify_api_key)])
 app.include_router(config_router, dependencies=[Depends(verify_api_key)])
+app.include_router(lid_router, dependencies=[Depends(verify_api_key)])
 
 
 @app.get("/")

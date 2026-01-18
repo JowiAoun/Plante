@@ -61,12 +61,22 @@ export const Login: React.FC = () => {
         transition={{ duration: 0.3 }}
       >
         {/* Logo & Title */}
-        <div className="login__logo">🌱</div>
+        <div className="login__logo">
+          <img
+            src="/logo.ico"
+            alt="Plante Logo"
+            style={{
+              height: '48px',
+              width: 'auto',
+              imageRendering: 'pixelated'
+            }}
+          />
+        </div>
         <h1 className="login__title">Plante</h1>
         <p className="login__subtitle">Welcome back, farmer!</p>
 
         {/* Google Sign In */}
-        <button 
+        <button
           className="login__google-btn"
           onClick={handleGoogleSignIn}
           type="button"

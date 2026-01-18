@@ -28,12 +28,22 @@ export const Register: React.FC = () => {
         transition={{ duration: 0.3 }}
       >
         {/* Logo & Title */}
-        <div className="register__logo">🌱</div>
+        <div className="register__logo">
+          <img
+            src="/logo.ico"
+            alt="Plante Logo"
+            style={{
+              height: '48px',
+              width: 'auto',
+              imageRendering: 'pixelated'
+            }}
+          />
+        </div>
         <h1 className="register__title">Join Plante</h1>
         <p className="register__subtitle">Start your farming adventure!</p>
 
         {/* Google Sign Up */}
-        <button 
+        <button
           className="register__google-btn"
           onClick={handleGoogleSignUp}
           type="button"
