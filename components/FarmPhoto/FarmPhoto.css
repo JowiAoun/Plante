@@ -76,31 +76,18 @@
   gap: 12px;
 }
 
-.farm-photo__noise {
-  position: absolute;
-  inset: 0;
-  background: 
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 100, 0, 0.1) 2px,
-      rgba(0, 100, 0, 0.1) 4px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 100, 0, 0.1) 2px,
-      rgba(0, 100, 0, 0.1) 4px
-    );
-  opacity: 0.5;
-  animation: noise-pulse 2s ease-in-out infinite;
+/* Camera sprite */
+.farm-photo__sprite {
+  width: 64px;
+  height: auto;
+  image-rendering: pixelated;
+  opacity: 0.8;
+  animation: pulse-camera 2s ease-in-out infinite;
 }
 
-@keyframes noise-pulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
+@keyframes pulse-camera {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
 }
 
 .farm-photo__focusing {

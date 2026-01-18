@@ -119,12 +119,16 @@ export const FarmPhoto: React.FC<FarmPhotoProps> = ({
         {/* Flash overlay */}
         {state === 'flashing' && <div className="farm-photo__flash" />}
 
-        {/* Loading/Idle state - blurry placeholder */}
+        {/* Loading/Idle state - pixel camera sprite */}
         {(state === 'idle' || state === 'capturing') && (
           <div className="farm-photo__placeholder">
-            <div className="farm-photo__noise" />
+            <img 
+              src="/images/pixel-camera.png" 
+              alt="Camera loading" 
+              className="farm-photo__sprite" 
+            />
             <span className="farm-photo__focusing">
-              {state === 'capturing' ? 'Focusing...' : 'No photo'}
+              {state === 'capturing' ? 'Focusing...' : 'Ready'}
             </span>
           </div>
         )}
