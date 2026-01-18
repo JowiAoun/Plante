@@ -1,0 +1,173 @@
+#!/usr/bin/env python3
+"""
+Dual Servo Controller for Plante Greenhouse
+Controls 2 servos connected to Arduino via USB serial
+
+Usage:
+    python3 servo_control.py              # Interactive mode
+    python3 servo_control.py 1 90         # Set servo 1 to 90°
+    python3 servo_control.py 2 45         # Set servo 2 to 45°
+    python3 servo_control.py both 90      # Set both to 90°
+    python3 servo_control.py demo         # Run demo
+    python3 servo_control.py status       # Get current positions
+"""
+
+import serial
+import time
+import sys
+
+SERIAL_PORT = '/dev/ttyACM0'
+BAUD_RATE = 9600
+
+
+class DualServoController:
+    def __init__(self, port=SERIAL_PORT):
+        self.port = port
+        self.serial = None
+        
+    def connect(self):
+        """Connect to Arduino."""
+        try:
+            self.serial = serial.Serial(self.port, BAUD_RATE, timeout=2)
+            time.sleep(2)  # Wait for Arduino reset
+            
+            # Read startup message
+            response = self.serial.readline().decode().strip()
+            if "READY" in response:
+                print(f"Connected to Arduino on {self.port}")
+                return True
+            else:
+                print(f"Unexpected response: {response}")
+                return False
+        except Exception as e:
+            print(f"Connection failed: {e}")
+            return False
+            
+    def close(self):
+        """Close connection."""
+        if self.serial:
+            self.serial.close()
+            
+    def send_command(self, cmd):
+        """Send command and get response."""
+        self.serial.write(f"{cmd}\n".encode())
+        time.sleep(0.1)
+        response = self.serial.readline().decode().strip()
+        return response
+        
+    def set_servo(self, servo, angle):
+        """
+        Set servo position.
+        
+        Args:
+            servo: 1, 2, or 'both'
+            angle: 0-180 degrees
+        """
+        cmd = f"{servo}:{angle}"
+        response = self.send_command(cmd)
+        print(f"  {response}")
+        return "OK" in response
+        
+    def get_status(self):
+        """Get current servo positions."""
+        response = self.send_command("STATUS")
+        print(f"  {response}")
+        return response
+        
+    def demo(self):
+        """Run demo sequence."""
+        print("\n=== Servo Demo ===\n")
+        
+        print("Both servos to 0°...")
+        self.set_servo("both", 0)
+        time.sleep(1)
+        
+        print("Servo 1 to 90°...")
+        self.set_servo(1, 90)
+        time.sleep(1)
+        
+        print("Servo 2 to 90°...")
+        self.set_servo(2, 90)
+        time.sleep(1)
+        
+        print("Both servos to 180°...")
+        self.set_servo("both", 180)
+        time.sleep(1)
+        
+        print("Sweep down...")
+        for angle in range(180, -1, -10):
+            self.set_servo("both", angle)
+            time.sleep(0.1)
+            
+        print("\nDemo complete!")
+        
+    def interactive(self):
+        """Interactive control mode."""
+        print("\n=== Interactive Servo Control ===")
+        print("Commands:")
+        print("  1:90    - Set servo 1 to 90°")
+        print("  2:45    - Set servo 2 to 45°")
+        print("  both:90 - Set both servos to 90°")
+        print("  status  - Get positions")
+        print("  demo    - Run demo")
+        print("  quit    - Exit")
+        print()
+        
+        while True:
+            try:
+                cmd = input("> ").strip().lower()
+                
+                if cmd == 'quit' or cmd == 'exit':
+                    break
+                elif cmd == 'status':
+                    self.get_status()
+                elif cmd == 'demo':
+                    self.demo()
+                elif ':' in cmd:
+                    parts = cmd.split(':')
+                    servo = parts[0]
+                    angle = int(parts[1])
+                    self.set_servo(servo, angle)
+                else:
+                    print("Invalid command")
+                    
+            except KeyboardInterrupt:
+                break
+            except Exception as e:
+                print(f"Error: {e}")
+
+
+def main():
+    controller = DualServoController()
+    
+    if not controller.connect():
+        print("Failed to connect. Check Arduino is plugged in.")
+        print("Try: ls /dev/ttyACM* /dev/ttyUSB*")
+        return
+        
+    try:
+        if len(sys.argv) == 1:
+            # Interactive mode
+            controller.interactive()
+            
+        elif sys.argv[1] == 'demo':
+            controller.demo()
+            
+        elif sys.argv[1] == 'status':
+            controller.get_status()
+            
+        elif len(sys.argv) == 3:
+            # Direct command: python3 servo_control.py 1 90
+            servo = sys.argv[1]
+            angle = int(sys.argv[2])
+            controller.set_servo(servo, angle)
+            
+        else:
+            print(__doc__)
+            
+    finally:
+        controller.close()
+
+
+if __name__ == '__main__':
+    main()
