@@ -116,6 +116,9 @@ export interface DbFarm {
   deviceId?: string;
   lastSeen: Date;
 
+  // Stats
+  wateringCount?: number;
+
   // Timestamps
   createdAt: Date;
   updatedAt: Date;

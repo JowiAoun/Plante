@@ -41,6 +41,14 @@ export async function POST(
 
         const message = messages[action] || `🌱 Action "${action}" requested for ${farmName}.`;
 
+        // Increment watering count if this is a water action
+        if (action === 'water') {
+            await farms.updateOne(
+                { _id: new ObjectId(id) },
+                { $inc: { wateringCount: 1 } }
+            );
+        }
+
         // Send SMS notification
         const result = await sendNotificationSms(
             session.user.id,

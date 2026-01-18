@@ -354,11 +354,15 @@ export default function FarmPage({ params }: FarmPageProps) {
               <h2>Farm Stats</h2>
               <div className="farm-detail__stats-grid">
                 <div className="farm-detail__stat">
-                  <span className="farm-detail__stat-value">7</span>
+                  <span className="farm-detail__stat-value">
+                    {farm.createdAt
+                      ? Math.max(1, Math.floor((Date.now() - new Date(farm.createdAt).getTime()) / (1000 * 60 * 60 * 24)))
+                      : 1}
+                  </span>
                   <span className="farm-detail__stat-label">Days Active</span>
                 </div>
                 <div className="farm-detail__stat">
-                  <span className="farm-detail__stat-value">12</span>
+                  <span className="farm-detail__stat-value">{farm.wateringCount || 0}</span>
                   <span className="farm-detail__stat-label">Waterings</span>
                 </div>
                 <div className="farm-detail__stat">

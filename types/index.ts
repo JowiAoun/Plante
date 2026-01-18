@@ -43,6 +43,8 @@ export interface Farm {
     light?: { min: number; max: number };
   };
   lastSeen: string;
+  wateringCount?: number;
+  createdAt?: string;
 }
 
 // Achievement rarity

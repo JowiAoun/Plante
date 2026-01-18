@@ -69,16 +69,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         },
         light: farm.sensors.light
           ? {
-              value: farm.sensors.light.value,
-              unit: 'lux',
-              trend: farm.sensors.light.trend,
-              updatedAt: farm.sensors.light.updatedAt.toISOString(),
-            }
+            value: farm.sensors.light.value,
+            unit: 'lux',
+            trend: farm.sensors.light.trend,
+            updatedAt: farm.sensors.light.updatedAt.toISOString(),
+          }
           : undefined,
       },
       thresholds: farm.thresholds,
       deviceId: farm.deviceId,
       lastSeen: farm.lastSeen.toISOString(),
+      wateringCount: farm.wateringCount || 0,
       createdAt: farm.createdAt.toISOString(),
       updatedAt: farm.updatedAt.toISOString(),
     });
