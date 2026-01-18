@@ -61,19 +61,28 @@ echo -e "${GREEN}✓${NC} System dependencies installed"
 echo -e "\n${YELLOW}[3/5]${NC} Setting up Python virtual environment..."
 
 # Ensure venv module is available
-sudo apt-get install -y python3-venv
+sudo apt-get install -y python3-venv python3-full
 
 # Create virtual environment if it doesn't exist
 if [ -d "$VENV_DIR" ]; then
-    echo -e "${YELLOW}Virtual environment already exists. Recreating...${NC}"
+    echo -e "${YELLOW}Virtual environment already exists. Removing...${NC}"
     rm -rf "$VENV_DIR"
 fi
 
-python3 -m venv "$VENV_DIR" || {
-    echo -e "${RED}Failed to create virtual environment. Trying with --without-pip...${NC}"
-    python3 -m venv --without-pip "$VENV_DIR"
-    curl -sS https://bootstrap.pypa.io/get-pip.py | "$VENV_DIR/bin/python3"
-}
+# Wait a moment for filesystem to sync
+sync
+sleep 1
+
+echo -e "Creating virtual environment at $VENV_DIR..."
+/usr/bin/python3 -m venv "$VENV_DIR"
+
+if [ ! -f "$VENV_DIR/bin/python3" ]; then
+    echo -e "${RED}Failed to create virtual environment with standard method.${NC}"
+    echo -e "${YELLOW}Trying alternative method...${NC}"
+    /usr/bin/python3 -m venv --without-pip "$VENV_DIR"
+    "$VENV_DIR/bin/python3" -m ensurepip
+fi
+
 echo -e "${GREEN}✓${NC} Virtual environment created at $VENV_DIR"
 
 # Activate venv and install dependencies
