@@ -155,99 +155,105 @@ export default function FarmPage({ params }: FarmPageProps) {
           </div>
         </header>
 
-        {/* Live Camera Photo */}
-        <section className="farm-detail__camera">
-          <FarmPhoto farmId={farm.id} autoCapture={true} showFrame={true} />
-        </section>
+        {/* Two-column layout: Camera | Info */}
+        <div className="farm-detail__content">
+          {/* Left: Camera */}
+          <section className="farm-detail__camera">
+            <FarmPhoto farmId={farm.id} autoCapture={true} showFrame={true} />
+          </section>
 
-        {/* Sensors */}
-        <section className="farm-detail__sensors">
-          <div className="farm-detail__sensors-header">
-            <h2>Sensor Readings</h2>
-            <ActionButton
-              label={syncing ? "Syncing..." : "Sync"}
-              variant="secondary"
-              icon={syncing ? "⟳" : "🔄"}
-              size="small"
-              onClick={handleSync}
-              disabled={syncing}
-            />
-          </div>
-          <div className="farm-detail__sensor-grid">
-            <SensorBadge
-              type="temp"
-              value={farm.sensors.temp.value}
-              unit={farm.sensors.temp.unit}
-              trend={farm.sensors.temp.trend}
-              showLabel
-            />
-            <SensorBadge
-              type="humidity"
-              value={farm.sensors.humidity.value}
-              unit={farm.sensors.humidity.unit}
-              trend={farm.sensors.humidity.trend}
-              showLabel
-            />
-            <SensorBadge
-              type="soil"
-              value={farm.sensors.soil.value}
-              unit={farm.sensors.soil.unit}
-              trend={farm.sensors.soil.trend}
-              showLabel
-            />
-            {farm.sensors.light && (
-              <SensorBadge
-                type="light"
-                value={farm.sensors.light.value}
-                unit={farm.sensors.light.unit}
-                trend={farm.sensors.light.trend}
-                showLabel
-              />
-            )}
-          </div>
-        </section>
+          {/* Right: Info column */}
+          <div className="farm-detail__info">
+            {/* Sensors */}
+            <section className="farm-detail__sensors">
+              <div className="farm-detail__sensors-header">
+                <h2>Sensor Readings</h2>
+                <ActionButton
+                  label={syncing ? "Syncing..." : "Sync"}
+                  variant="secondary"
+                  icon={syncing ? "⟳" : "🔄"}
+                  size="small"
+                  onClick={handleSync}
+                  disabled={syncing}
+                />
+              </div>
+              <div className="farm-detail__sensor-grid">
+                <SensorBadge
+                  type="temp"
+                  value={farm.sensors.temp.value}
+                  unit={farm.sensors.temp.unit}
+                  trend={farm.sensors.temp.trend}
+                  showLabel
+                />
+                <SensorBadge
+                  type="humidity"
+                  value={farm.sensors.humidity.value}
+                  unit={farm.sensors.humidity.unit}
+                  trend={farm.sensors.humidity.trend}
+                  showLabel
+                />
+                <SensorBadge
+                  type="soil"
+                  value={farm.sensors.soil.value}
+                  unit={farm.sensors.soil.unit}
+                  trend={farm.sensors.soil.trend}
+                  showLabel
+                />
+                {farm.sensors.light && (
+                  <SensorBadge
+                    type="light"
+                    value={farm.sensors.light.value}
+                    unit={farm.sensors.light.unit}
+                    trend={farm.sensors.light.trend}
+                    showLabel
+                  />
+                )}
+              </div>
+            </section>
 
-        {/* Actions */}
-        <section className="farm-detail__actions">
-          <h2>Actions</h2>
-          <div className="farm-detail__action-grid">
-            <ActionButton
-              label="Water Now"
-              variant="primary"
-              icon="💧"
-              size="large"
-              fullWidth
-              onClick={() => handleAction('Watering')}
-            />
-            <ActionButton
-              label="Open Hatch"
-              variant="secondary"
-              icon="🚪"
-              size="large"
-              fullWidth
-              onClick={() => handleAction('Hatch opening')}
-            />
-          </div>
-        </section>
+            {/* Actions */}
+            <section className="farm-detail__actions">
+              <h2>Actions</h2>
+              <div className="farm-detail__action-grid">
+                <ActionButton
+                  label="Water Now"
+                  variant="primary"
+                  icon="💧"
+                  size="large"
+                  fullWidth
+                  onClick={() => handleAction('Watering')}
+                />
+                <ActionButton
+                  label="Open Hatch"
+                  variant="secondary"
+                  icon="🚪"
+                  size="large"
+                  fullWidth
+                  onClick={() => handleAction('Hatch opening')}
+                />
+              </div>
+            </section>
 
-        {/* History/Stats */}
-        <section className="farm-detail__stats nes-container is-dark">
-          <h2>Farm Stats</h2>
-          <div className="farm-detail__stats-grid">
-            <div className="farm-detail__stat">
-              <span className="farm-detail__stat-value">7</span>
-              <span className="farm-detail__stat-label">Days Active</span>
-            </div>
-            <div className="farm-detail__stat">
-              <span className="farm-detail__stat-value">12</span>
-              <span className="farm-detail__stat-label">Waterings</span>
-            </div>
-            <div className="farm-detail__stat">
-              <span className="farm-detail__stat-value">98%</span>
-              <span className="farm-detail__stat-label">Uptime</span>
-            </div>
+            {/* Stats */}
+            <section className="farm-detail__stats nes-container is-dark">
+              <h2>Farm Stats</h2>
+              <div className="farm-detail__stats-grid">
+                <div className="farm-detail__stat">
+                  <span className="farm-detail__stat-value">7</span>
+                  <span className="farm-detail__stat-label">Days Active</span>
+                </div>
+                <div className="farm-detail__stat">
+                  <span className="farm-detail__stat-value">12</span>
+                  <span className="farm-detail__stat-label">Waterings</span>
+                </div>
+                <div className="farm-detail__stat">
+                  <span className="farm-detail__stat-value">98%</span>
+                  <span className="farm-detail__stat-label">Uptime</span>
+                </div>
+              </div>
+            </section>
           </div>
-        </section>
+        </div>
 
         {/* Toast notifications */}
         <ToastContainer>
