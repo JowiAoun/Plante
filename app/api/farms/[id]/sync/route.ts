@@ -130,6 +130,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       piData = await piClient.getSensors(false); // Force fresh reading
     } catch (error) {
       if (error instanceof PiApiError) {
+        // Check for common connection/gateway errors
+        const errorMsg = error.message.toLowerCase();
+        const isConnectionError = 
+          errorMsg.includes('failed to connect') ||
+          errorMsg.includes('502') ||
+          errorMsg.includes('503') ||
+          errorMsg.includes('504') ||
+          errorMsg.includes('bad gateway') ||
+          errorMsg.includes('timed out') ||
+          errorMsg.includes('econnrefused');
+        
+        if (isConnectionError) {
+          return NextResponse.json(
+            { error: 'Farm sensor server is currently unreachable. Please check that the Raspberry Pi is powered on and connected to the network.' },
+            { status: 503 }
+          );
+        }
+        
         return NextResponse.json(
           { error: `Pi API error: ${error.message}` },
           { status: 503 }
