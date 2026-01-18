@@ -23,6 +23,6 @@
         "lid_open": 90,
         "lid_closed": 0
     },
-    "poll_interval": 30,
+    "poll_interval": 5,
     "actions_enabled": true
 }
