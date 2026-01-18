@@ -40,14 +40,16 @@ class DualServoController:
             for attempt in range(5):
                 # Read whatever is in the buffer
                 if self.serial.in_waiting > 0:
-                    garbage = self.serial.read(self.serial.in_waiting)
-                    # Try to find READY in the raw bytes
-                    if b'READY' in garbage:
+                    data = self.serial.read(self.serial.in_waiting)
+                    print(f"  [debug] buffer ({len(data)} bytes): {data}")
+                    if b'READY' in data:
                         print(f"Connected to Arduino on {self.port}")
                         return True
                 
                 # Try readline
                 raw = self.serial.readline()
+                if raw:
+                    print(f"  [debug] readline: {raw}")
                 if b'READY' in raw:
                     print(f"Connected to Arduino on {self.port}")
                     return True
