@@ -31,6 +31,8 @@ export interface DbUser {
     voiceEnabled: boolean;
     notificationsEnabled: boolean;
     pixelScale: '1x' | '2x';
+    chatAnalyticsConsent?: boolean;
+    chatAnalyticsConsentAt?: Date;
   };
 
   // Status
@@ -164,7 +166,7 @@ export interface DbNotification {
   _id: ObjectId;
   userId: ObjectId;
 
-  type: 'alert' | 'achievement' | 'social' | 'system';
+  type: 'alert' | 'achievement' | 'social' | 'system' | 'weekly_pulse';
   severity: 'info' | 'warning' | 'critical';
 
   title: string;
@@ -194,26 +196,27 @@ export interface SmsPreferences {
   phoneVerified: boolean;
   verificationCode?: string;     // Hashed 6-digit code
   verificationExpires?: Date;
-  
+
   categories: {
     wateringConfirmation: boolean;
     maintenanceReminders: boolean;
     waterTankAlerts: boolean;
     environmentalAlerts: boolean;
+    weeklyPulse: boolean;
   };
-  
+
   quietHours: {
     enabled: boolean;
     start: string;               // "22:00" (10 PM)
     end: string;                 // "08:00" (8 AM)
     timezone: string;            // "America/New_York"
   };
-  
+
   thresholds: {
     tankLowPercent: number;      // Default: 25
     tankCriticalPercent: number; // Default: 10
   };
-  
+
   lastSmsAt?: Date;
   dailySmsCount: number;
   lastCountReset?: Date;
@@ -231,6 +234,7 @@ export const defaultSmsPreferences: SmsPreferences = {
     maintenanceReminders: true,
     waterTankAlerts: true,
     environmentalAlerts: true,
+    weeklyPulse: true,
   },
   quietHours: {
     enabled: false,
@@ -248,7 +252,7 @@ export const defaultSmsPreferences: SmsPreferences = {
 /**
  * SMS notification types
  */
-export type SmsNotificationType = 
+export type SmsNotificationType =
   | 'watering'
   | 'maintenance'
   | 'tank_low'
@@ -257,6 +261,7 @@ export type SmsNotificationType =
   | 'temp_high'
   | 'temp_low'
   | 'humidity_alert'
+  | 'weekly_pulse'
   | 'verification';
 
 /**
@@ -274,11 +279,11 @@ export interface DbSmsJob {
   type: SmsNotificationType;
   message: string;
   phoneNumber: string;
-  
+
   status: SmsJobStatus;
   attempts: number;
   maxAttempts: number;          // Default: 3
-  
+
   scheduledFor: Date;
   createdAt: Date;
   sentAt?: Date;

@@ -32,21 +32,21 @@ export function isQuietHours(prefs: SmsPreferences): boolean {
       minute: '2-digit',
       hour12: false,
     });
-    
+
     const currentTime = formatter.format(now);
     const [currentHour, currentMinute] = currentTime.split(':').map(Number);
     const currentMinutes = currentHour * 60 + currentMinute;
-    
+
     const [startHour, startMinute] = prefs.quietHours.start.split(':').map(Number);
     const [endHour, endMinute] = prefs.quietHours.end.split(':').map(Number);
     const startMinutes = startHour * 60 + startMinute;
     const endMinutes = endHour * 60 + endMinute;
-    
+
     // Handle overnight quiet hours (e.g., 22:00 - 08:00)
     if (startMinutes > endMinutes) {
       return currentMinutes >= startMinutes || currentMinutes < endMinutes;
     }
-    
+
     return currentMinutes >= startMinutes && currentMinutes < endMinutes;
   } catch {
     // If timezone parsing fails, don't block the message
@@ -60,12 +60,12 @@ export function isQuietHours(prefs: SmsPreferences): boolean {
 export async function isRateLimited(userId: string, prefs: SmsPreferences): Promise<boolean> {
   const now = new Date();
   const lastReset = prefs.lastCountReset ? new Date(prefs.lastCountReset) : null;
-  
+
   // Reset counter if it's a new day
   if (!lastReset || now.toDateString() !== lastReset.toDateString()) {
     return false;
   }
-  
+
   return prefs.dailySmsCount >= env.TWILIO_DAILY_LIMIT;
 }
 
@@ -86,6 +86,8 @@ export function isCategoryEnabled(prefs: SmsPreferences, type: SmsNotificationTy
     case 'temp_low':
     case 'humidity_alert':
       return prefs.categories.environmentalAlerts;
+    case 'weekly_pulse':
+      return prefs.categories.weeklyPulse;
     case 'verification':
       return true; // Always allow verification codes
     default:
@@ -110,20 +112,20 @@ export async function sendSms(
   try {
     const client = getTwilioClient();
     const from = getSenderPhoneNumber();
-    
+
     // Use recipient override for demo mode
     const recipient = getRecipientOverride() || to;
-    
+
     if (isDev && getRecipientOverride()) {
       console.log(`📱 [DEMO] Redirecting SMS from ${to} to override: ${recipient}`);
     }
-    
+
     const result = await client.messages.create({
       to: recipient,
       from,
       body: message,
     });
-    
+
     return {
       success: true,
       messageSid: result.sid,
@@ -150,37 +152,37 @@ export async function sendNotificationSms(
   // Get user preferences
   const users = await getUsersCollection();
   const user = await users.findOne({ _id: new ObjectId(userId) });
-  
+
   if (!user) {
     return { success: false, error: 'User not found' };
   }
-  
+
   // Check if SMS is enabled
   const smsPrefs = (user.settings as { smsPreferences?: SmsPreferences })?.smsPreferences;
   if (!smsPrefs?.enabled) {
     return { success: false, error: 'SMS notifications disabled' };
   }
-  
+
   // Check phone verification
   if (!smsPrefs.phoneVerified && type !== 'verification') {
     return { success: false, error: 'Phone not verified' };
   }
-  
+
   // Check category settings
   if (!isCategoryEnabled(smsPrefs, type)) {
     return { success: false, error: 'Category disabled by user' };
   }
-  
+
   // Check quiet hours (skip for critical notifications)
   if (!isCriticalNotification(type) && isQuietHours(smsPrefs)) {
     return { success: false, error: 'Quiet hours active' };
   }
-  
+
   // Check rate limiting
   if (await isRateLimited(userId, smsPrefs)) {
     return { success: false, error: 'Daily SMS limit reached' };
   }
-  
+
   // Create job record
   const smsJobs = await getSmsJobsCollection();
   const job: Omit<DbSmsJob, '_id'> = {
@@ -195,13 +197,13 @@ export async function sendNotificationSms(
     scheduledFor: new Date(),
     createdAt: new Date(),
   };
-  
+
   const insertResult = await smsJobs.insertOne(job as DbSmsJob);
   const jobId = insertResult.insertedId;
-  
+
   // Send the SMS
   const result = await sendSms(smsPrefs.phoneNumber, message);
-  
+
   // Update job status
   if (result.success) {
     await smsJobs.updateOne(
@@ -214,7 +216,7 @@ export async function sendNotificationSms(
         },
       }
     );
-    
+
     // Update user's daily count
     const now = new Date();
     await users.updateOne(
@@ -240,7 +242,7 @@ export async function sendNotificationSms(
       }
     );
   }
-  
+
   return result;
 }
 

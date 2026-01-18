@@ -95,30 +95,122 @@ Tone: Friendly plant enthusiast. Use 1-2 emojis. Focus on the most common alert 
 
 /**
  * Aggregate weekly stats from sensor/alert data
- * This is a placeholder - in production, query from MongoDB
+ * Queries real farm data from MongoDB
  */
 export async function aggregateWeeklyStats(userId: string): Promise<WeeklyPlantStats> {
+    const { getFarmsCollection } = await import('@/lib/db/collections');
+    const { ObjectId } = await import('mongodb');
+
     const now = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    // TODO: Replace with actual MongoDB aggregation query
-    // For hackathon demo, return mock data that showcases the feature
-    return {
-        userId,
-        weekStartDate: weekAgo.toISOString(),
-        weekEndDate: now.toISOString(),
-        alerts: {
-            total: 12,
-            byType: {
-                temperature: 2,
-                humidity: 8,
-                soilMoisture: 2,
+    try {
+        const farmsCollection = await getFarmsCollection();
+        const farms = await farmsCollection.find({
+            ownerId: new ObjectId(userId)
+        }).toArray();
+
+        if (farms.length === 0) {
+            // No farms, return empty stats
+            return {
+                userId,
+                weekStartDate: weekAgo.toISOString(),
+                weekEndDate: now.toISOString(),
+                alerts: {
+                    total: 0,
+                    byType: { temperature: 0, humidity: 0, soilMoisture: 0 },
+                    criticalCount: 0,
+                },
+                averageResponseTimeMinutes: 0,
+                healthTrend: 'stable',
+            };
+        }
+
+        // Calculate alerts based on current sensor readings vs thresholds
+        let tempAlerts = 0;
+        let humidityAlerts = 0;
+        let soilAlerts = 0;
+        let criticalCount = 0;
+        let warningCount = 0;
+        let healthyCount = 0;
+
+        for (const farm of farms) {
+            const { sensors, thresholds, status } = farm;
+
+            // Count status for health trend
+            if (status === 'critical') criticalCount++;
+            else if (status === 'warning') warningCount++;
+            else healthyCount++;
+
+            // Check temperature alerts
+            if (sensors.temperature && thresholds.temperature) {
+                const temp = sensors.temperature.value;
+                if (temp < thresholds.temperature.min || temp > thresholds.temperature.max) {
+                    tempAlerts++;
+                }
+            }
+
+            // Check humidity alerts
+            if (sensors.humidity && thresholds.humidity) {
+                const humidity = sensors.humidity.value;
+                if (humidity < thresholds.humidity.min || humidity > thresholds.humidity.max) {
+                    humidityAlerts++;
+                }
+            }
+
+            // Check soil moisture alerts
+            if (sensors.soilMoisture && thresholds.soilMoisture) {
+                const soil = sensors.soilMoisture.value;
+                if (soil < thresholds.soilMoisture.min || soil > thresholds.soilMoisture.max) {
+                    soilAlerts++;
+                }
+            }
+        }
+
+        const totalAlerts = tempAlerts + humidityAlerts + soilAlerts;
+
+        // Determine health trend based on farm statuses
+        let healthTrend: 'improving' | 'stable' | 'declining';
+        if (criticalCount > 0 || warningCount > healthyCount) {
+            healthTrend = 'declining';
+        } else if (healthyCount > warningCount && criticalCount === 0) {
+            healthTrend = 'improving';
+        } else {
+            healthTrend = 'stable';
+        }
+
+        return {
+            userId,
+            weekStartDate: weekAgo.toISOString(),
+            weekEndDate: now.toISOString(),
+            alerts: {
+                total: totalAlerts,
+                byType: {
+                    temperature: tempAlerts,
+                    humidity: humidityAlerts,
+                    soilMoisture: soilAlerts,
+                },
+                criticalCount,
             },
-            criticalCount: 1,
-        },
-        averageResponseTimeMinutes: 45,
-        healthTrend: 'stable',
-    };
+            averageResponseTimeMinutes: 30, // Placeholder - would need alert history
+            healthTrend,
+        };
+    } catch (error) {
+        console.error('[WeeklyPulse] Failed to aggregate stats:', error);
+        // Return empty stats on error
+        return {
+            userId,
+            weekStartDate: weekAgo.toISOString(),
+            weekEndDate: now.toISOString(),
+            alerts: {
+                total: 0,
+                byType: { temperature: 0, humidity: 0, soilMoisture: 0 },
+                criticalCount: 0,
+            },
+            averageResponseTimeMinutes: 0,
+            healthTrend: 'stable',
+        };
+    }
 }
 
 /**

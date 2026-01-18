@@ -37,6 +37,7 @@ const typeIcons: Record<Notification['type'], string> = {
   achievement: '🏆',
   social: '👥',
   system: '⚙️',
+  weekly_pulse: '📊',
 };
 
 /**
@@ -46,14 +47,14 @@ const formatRelativeTime = (ts: string): string => {
   const now = Date.now();
   const then = new Date(ts).getTime();
   const diff = now - then;
-  
+
   const minutes = Math.floor(diff / 60000);
   if (minutes < 1) return 'just now';
   if (minutes < 60) return `${minutes}m ago`;
-  
+
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h ago`;
-  
+
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
 };
@@ -81,14 +82,14 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
   const handleItemClick = (notification: Notification) => {
     onMarkRead?.(notification.id);
     setIsOpen(false);
-    
+
     // Check if it's an achievement
     if (notification.type === 'achievement') {
       setSelectedAchievement(notification);
       setAchievementModalOpen(true);
       return;
     }
-    
+
     // Handle redirect
     if (notification.link) {
       router.push(notification.link);
@@ -169,10 +170,10 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
                   >
                     <div className="notification-bell__item-icon-container">
                       {notification.senderAvatarSeed ? (
-                        <PixelAvatar 
-                          username="user" 
-                          seed={notification.senderAvatarSeed} 
-                          size="small" 
+                        <PixelAvatar
+                          username="user"
+                          seed={notification.senderAvatarSeed}
+                          size="small"
                           className="notification-bell__item-avatar"
                         />
                       ) : (
@@ -197,7 +198,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
         )}
       </div>
 
-      <AchievementModal 
+      <AchievementModal
         isOpen={achievementModalOpen}
         notification={selectedAchievement}
         onClose={() => setAchievementModalOpen(false)}

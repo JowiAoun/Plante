@@ -7,6 +7,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { generateWeeklyInsight, aggregateWeeklyStats } from '@/lib/weekly-pulse';
+import { getNotificationsCollection, getUsersCollection } from '@/lib/db/collections';
+import { sendNotificationSms } from '@/lib/twilio/sms';
 import { ObjectId } from 'mongodb';
 
 export async function POST(request: NextRequest) {
@@ -27,19 +29,56 @@ export async function POST(request: NextRequest) {
         const insight = await generateWeeklyInsight(stats);
 
         // Create pulse record
+        const pulseId = new ObjectId();
         const pulse = {
-            id: new ObjectId().toString(),
+            id: pulseId.toString(),
             userId,
             createdAt: new Date().toISOString(),
             ...insight,
         };
 
-        // TODO: Store pulse in MongoDB
-        // TODO: Send in-app notification
-        // TODO: Send SMS if user has enabled smsWeeklyPulse
-
         console.log('[WeeklyPulse] Generated pulse:', pulse.id);
         console.log('[WeeklyPulse] Summary:', pulse.summary);
+
+        // Create in-app notification
+        try {
+            const notifications = await getNotificationsCollection();
+            await notifications.insertOne({
+                _id: new ObjectId(),
+                userId: new ObjectId(userId),
+                type: 'weekly_pulse',
+                severity: 'info',
+                title: '📊 Your Weekly Plant Report',
+                message: pulse.summary,
+                link: '/weekly-pulse',
+                read: false,
+                createdAt: new Date(),
+            });
+            console.log('[WeeklyPulse] In-app notification created');
+        } catch (notifError) {
+            console.error('[WeeklyPulse] Failed to create notification:', notifError);
+        }
+
+        // Send SMS if user has it enabled
+        try {
+            const users = await getUsersCollection();
+            const user = await users.findOne({ _id: new ObjectId(userId) });
+            const smsPrefs = (user?.settings as { smsPreferences?: { enabled: boolean; phoneVerified: boolean; categories?: { weeklyPulse?: boolean } } })?.smsPreferences;
+
+            if (smsPrefs?.enabled && smsPrefs?.phoneVerified && smsPrefs?.categories?.weeklyPulse) {
+                const smsMessage = `📊 Weekly Plant Report\n\n${pulse.summary}\n\nTap here to see more: ${process.env.NEXTAUTH_URL || 'https://plante.app'}/weekly-pulse\n\n— Plante`;
+                const result = await sendNotificationSms(userId, 'weekly_pulse', smsMessage);
+                if (result.success) {
+                    console.log('[WeeklyPulse] SMS sent successfully');
+                } else {
+                    console.log('[WeeklyPulse] SMS not sent:', result.error);
+                }
+            } else {
+                console.log('[WeeklyPulse] SMS disabled or not configured for user');
+            }
+        } catch (smsError) {
+            console.error('[WeeklyPulse] Failed to send SMS:', smsError);
+        }
 
         return NextResponse.json({
             success: true,

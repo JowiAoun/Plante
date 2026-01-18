@@ -54,6 +54,7 @@ export const AppShell: React.FC<AppShellProps> = ({
     { path: '/profile', icon: '👤', label: 'Profile' },
     { path: `/farms/explore/${user?.id || 'guest'}`, icon: '🌾', label: 'Farm' },
     { path: '/museum', icon: '🏛️', label: 'Museum' },
+    { path: '/weekly-pulse', icon: '📊', label: 'Weekly Pulse' },
     { path: '/leaderboard', icon: '🏆', label: 'Leaderboard' },
     { path: '/settings', icon: '⚙️', label: 'Settings' },
   ];

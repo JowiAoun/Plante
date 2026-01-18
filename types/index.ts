@@ -60,7 +60,7 @@ export interface Achievement {
 }
 
 // Notification types
-export type NotificationType = 'alert' | 'achievement' | 'social' | 'system';
+export type NotificationType = 'alert' | 'achievement' | 'social' | 'system' | 'weekly_pulse';
 export type NotificationSeverity = 'info' | 'warning' | 'critical';
 
 // Notification entity

@@ -34,3 +34,8 @@ export { VoiceToggle } from './VoiceToggle';
 export { AIAvatar } from './AIAvatar';
 export { AudioPlayer } from './AudioPlayer';
 
+// Weekly Pulse
+export { WeeklyPulseCard } from './WeeklyPulseCard';
+
+// Privacy
+export { PrivacyConsentModal } from './PrivacyConsentModal';
