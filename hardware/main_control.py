@@ -77,27 +77,43 @@ class GreenhouseController:
         return True
     
     def open_lid(self, reason: str):
-        """Open greenhouse lid using both servos."""
+        """Open greenhouse lid using both servos (gradual movement)."""
         if self.lid_is_open:
             return
         
         config = self.load_config()
-        angle = config.get("servo", {}).get("lid_open", 90)
+        target_angle = config.get("servo", {}).get("lid_open", 90)
+        current = config.get("servo", {}).get("lid_closed", 0)
         
         print(f"[ACTION] Opening lid ({reason})")
-        self.servo_controller.set_servo("both", angle)
+        
+        # Gradual movement: 2° steps with 80ms delay (slow and smooth)
+        step = 2 if target_angle > current else -2
+        for angle in range(current, target_angle + step, step):
+            angle = min(max(angle, 0), 180)  # Clamp to valid range
+            self.servo_controller.set_servo("both", angle)
+            time.sleep(0.08)
+        
         self.lid_is_open = True
         
     def close_lid(self, reason: str):
-        """Close greenhouse lid using both servos."""
+        """Close greenhouse lid using both servos (gradual movement)."""
         if not self.lid_is_open:
             return
         
         config = self.load_config()
-        angle = config.get("servo", {}).get("lid_closed", 0)
+        target_angle = config.get("servo", {}).get("lid_closed", 0)
+        current = config.get("servo", {}).get("lid_open", 90)
         
         print(f"[ACTION] Closing lid ({reason})")
-        self.servo_controller.set_servo("both", angle)
+        
+        # Gradual movement: 2° steps with 80ms delay (slow and smooth)
+        step = -2 if target_angle < current else 2
+        for angle in range(current, target_angle + step, step):
+            angle = min(max(angle, 0), 180)  # Clamp to valid range
+            self.servo_controller.set_servo("both", angle)
+            time.sleep(0.08)
+        
         self.lid_is_open = False
     
     def check_thresholds(self, readings: dict) -> None:

@@ -87,6 +87,38 @@ class DualServoController:
         response = self.send_command(cmd)
         print(f"  {response}")
         return "OK" in response
+    
+    def smooth_move(self, servo, target, step=5, delay=0.05):
+        """
+        Move servo smoothly to target position.
+        
+        Args:
+            servo: 1, 2, or 'both'
+            target: Target angle 0-180
+            step: Degrees per step (smaller = smoother)
+            delay: Seconds between steps
+        """
+        # Get current position (assume 0 if unknown)
+        status = self.send_command("STATUS")
+        current = 0
+        if "1=" in status:
+            try:
+                current = int(status.split("1=")[1].split(",")[0])
+            except:
+                current = 0
+        
+        # Calculate direction
+        if target > current:
+            angles = range(current, target + 1, step)
+        else:
+            angles = range(current, target - 1, -step)
+        
+        for angle in angles:
+            self.send_command(f"{servo}:{angle}")
+            time.sleep(delay)
+        
+        # Ensure we hit exact target
+        self.send_command(f"{servo}:{target}")
         
     def get_status(self):
         """Get current servo positions."""
@@ -122,15 +154,43 @@ class DualServoController:
         print("\nDemo complete!")
     
     def test(self):
-        """Run simple test sequence: 0 → 90 → 180 → 90 → 0."""
-        print("\n=== Servo Test Sequence ===\n")
+        """Run smooth test sequence: 0 → 90 → 180 → 90 → 0 in 10° steps."""
+        print("\n=== Servo Test Sequence (Smooth) ===\n")
         
-        positions = [0, 90, 180, 90, 0]
+        # Start at 0
+        print("Starting at 0°...")
+        self.set_servo("both", 0)
+        time.sleep(1)
         
-        for angle in positions:
-            print(f"Both servos to {angle}°...")
+        # Go from 0 to 90 in 10° steps
+        print("Moving 0° → 90°...")
+        for angle in range(10, 91, 10):  # 10, 20, 30, ... 90
             self.set_servo("both", angle)
-            time.sleep(1.5)
+            time.sleep(0.2)
+        
+        time.sleep(0.5)
+        
+        # Go from 90 to 180 in 10° steps
+        print("Moving 90° → 180°...")
+        for angle in range(100, 181, 10):  # 100, 110, ... 180
+            self.set_servo("both", angle)
+            time.sleep(0.2)
+        
+        time.sleep(0.5)
+        
+        # Go from 180 to 90 in 10° steps
+        print("Moving 180° → 90°...")
+        for angle in range(170, 89, -10):  # 170, 160, ... 90
+            self.set_servo("both", angle)
+            time.sleep(0.2)
+        
+        time.sleep(0.5)
+        
+        # Go from 90 to 0 in 10° steps
+        print("Moving 90° → 0°...")
+        for angle in range(80, -1, -10):  # 80, 70, ... 0
+            self.set_servo("both", angle)
+            time.sleep(0.2)
             
         print("\nTest complete!")
         
