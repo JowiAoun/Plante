@@ -182,26 +182,24 @@ export default function FarmPage({ params }: FarmPageProps) {
       onNavigate={handleNavigate as unknown as (page: string) => void}
     >
       <div className="farm-detail">
-        {/* Header with back button */}
-        <header className="farm-detail__header">
-          <Link href="/" className="farm-detail__back">
-            ← Back
-          </Link>
-          <div className="farm-detail__title-row">
-            <h1 className="farm-detail__title">{farm.name}</h1>
-            <span 
-              className="farm-detail__status"
-              style={{ color: statusColor, borderColor: statusColor }}
-            >
-              {farm.status.toUpperCase()}
-            </span>
-          </div>
-        </header>
+        {/* Back link above the grid */}
+        <Link href="/" className="farm-detail__back">
+          ← Back
+        </Link>
 
-        {/* Two-column layout: Camera | Info */}
+        {/* Two-column layout: Title+Camera | Sensors+Info */}
         <div className="farm-detail__content">
-          {/* Left: Camera */}
+          {/* Left: Title + Camera */}
           <section className="farm-detail__camera">
+            <div className="farm-detail__title-row">
+              <h1 className="farm-detail__title">{farm.name}</h1>
+              <span 
+                className="farm-detail__status"
+                style={{ color: statusColor, borderColor: statusColor }}
+              >
+                {farm.status.toUpperCase()}
+              </span>
+            </div>
             <FarmPhoto farmId={farm.id} autoCapture={true} showFrame={true} />
           </section>
 

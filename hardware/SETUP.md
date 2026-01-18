@@ -1,29 +1,46 @@
 # Raspberry Pi Sensor API - Quick Setup
 
-## Step 1: Install Dependencies (On Pi)
+## Step 1: Automated Setup (Recommended)
+
+We have created an automated script that sets up the environment, dependencies, and systemd service in one go.
+
+Run this on your Raspberry Pi:
+
+```bash
+cd ~/Plante/hardware/scripts
+chmod +x setup-pi.sh
+./setup-pi.sh
+```
+
+This script will:
+- Install system dependencies (like `libgpiod`)
+- Create the Python virtual environment
+- Install all Python requirements
+- Create and enable the systemd service (`plante-api`)
+
+After it finishes, the API will be running on port 8000.
+
+## Step 2: Manual Setup (Alternative)
+
+If the script doesn't work for you, follow these manual steps:
+
+### 2.1 Install Dependencies
 
 ```bash
 cd ~/Plante/hardware
+python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 cp api/.env.example api/.env
 ```
 
-## Step 2: Test the API Locally
+### 2.2 Test the API Locally
 
 ```bash
 python -m api.main
 ```
 
-Visit `http://localhost:8000/docs` to see the API documentation.
-
-Test with:
-```bash
-curl http://localhost:8000/health
-curl http://localhost:8000/sensors
-```
-
-## Step 3: Run as Background Service
+### 2.3 Run as Background Service
 
 ```bash
 sudo cp plante-api.service /etc/systemd/system/
