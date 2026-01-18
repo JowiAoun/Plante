@@ -12,13 +12,16 @@ try:
     from picamera2 import Picamera2
 except ImportError:
     print("picamera2 not installed. Run: pip install picamera2")
-    exit(1)
+    Picamera2 = None
 
 
 class PlantCamera:
     """Raspberry Pi Camera for greenhouse monitoring."""
     
     def __init__(self, save_dir="~/Plante/hardware/photos"):
+        if Picamera2 is None:
+            raise ImportError("picamera2 library is not installed")
+            
         self.save_dir = os.path.expanduser(save_dir)
         os.makedirs(self.save_dir, exist_ok=True)
         
