@@ -9,6 +9,7 @@ Usage:
     python3 servo_control.py 2 45         # Set servo 2 to 45°
     python3 servo_control.py both 90      # Set both to 90°
     python3 servo_control.py demo         # Run demo
+    python3 servo_control.py test         # Run test sequence (0→90→180→90→0)
     python3 servo_control.py status       # Get current positions
 """
 
@@ -31,14 +32,31 @@ class DualServoController:
             self.serial = serial.Serial(self.port, BAUD_RATE, timeout=2)
             time.sleep(2)  # Wait for Arduino reset
             
-            # Read startup message
-            response = self.serial.readline().decode().strip()
+            # Flush any garbage bytes from Arduino startup
+            self.serial.reset_input_buffer()
+            time.sleep(0.5)
+            
+            # Read startup message (with error handling for bad bytes)
+            raw = self.serial.readline()
+            response = raw.decode('utf-8', errors='replace').strip()
+            
             if "READY" in response:
                 print(f"Connected to Arduino on {self.port}")
                 return True
             else:
+                # Sometimes need to read again after flush
+                raw = self.serial.readline()
+                response = raw.decode('utf-8', errors='replace').strip()
+                if "READY" in response:
+                    print(f"Connected to Arduino on {self.port}")
+                    return True
                 print(f"Unexpected response: {response}")
+                print("(Try unplugging and replugging the Arduino)")
                 return False
+        except serial.SerialException as e:
+            print(f"Serial error: {e}")
+            print("Check: ls /dev/ttyACM* /dev/ttyUSB*")
+            return False
         except Exception as e:
             print(f"Connection failed: {e}")
             return False
@@ -52,7 +70,8 @@ class DualServoController:
         """Send command and get response."""
         self.serial.write(f"{cmd}\n".encode())
         time.sleep(0.1)
-        response = self.serial.readline().decode().strip()
+        raw = self.serial.readline()
+        response = raw.decode('utf-8', errors='replace').strip()
         return response
         
     def set_servo(self, servo, angle):
@@ -100,6 +119,19 @@ class DualServoController:
             time.sleep(0.1)
             
         print("\nDemo complete!")
+    
+    def test(self):
+        """Run simple test sequence: 0 → 90 → 180 → 90 → 0."""
+        print("\n=== Servo Test Sequence ===\n")
+        
+        positions = [0, 90, 180, 90, 0]
+        
+        for angle in positions:
+            print(f"Both servos to {angle}°...")
+            self.set_servo("both", angle)
+            time.sleep(1.5)
+            
+        print("\nTest complete!")
         
     def interactive(self):
         """Interactive control mode."""
@@ -109,7 +141,8 @@ class DualServoController:
         print("  2:45    - Set servo 2 to 45°")
         print("  both:90 - Set both servos to 90°")
         print("  status  - Get positions")
-        print("  demo    - Run demo")
+        print("  demo    - Run full demo")
+        print("  test    - Run test (0→90→180→90→0)")
         print("  quit    - Exit")
         print()
         
@@ -123,6 +156,8 @@ class DualServoController:
                     self.get_status()
                 elif cmd == 'demo':
                     self.demo()
+                elif cmd == 'test':
+                    self.test()
                 elif ':' in cmd:
                     parts = cmd.split(':')
                     servo = parts[0]
@@ -152,6 +187,9 @@ def main():
             
         elif sys.argv[1] == 'demo':
             controller.demo()
+            
+        elif sys.argv[1] == 'test':
+            controller.test()
             
         elif sys.argv[1] == 'status':
             controller.get_status()
