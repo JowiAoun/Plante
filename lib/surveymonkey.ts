@@ -28,13 +28,8 @@ export async function submitMicroSurveyResponse(
         return { success: false, error: 'Confidence below threshold' };
     }
 
-    // Build survey response payload
+    // Build survey response payload (no custom_variables - they need pre-definition in SM)
     const payload = {
-        custom_variables: {
-            user_id: userId,
-            source: 'ai_chat',
-            timestamp: feedback.extractedAt,
-        },
         response_status: 'completed',
         pages: buildPagesPayload(feedback),
     };
@@ -67,57 +62,133 @@ export async function submitMicroSurveyResponse(
     }
 }
 
+// Real question IDs and choice IDs from SurveyMonkey survey
+const SURVEY_MAPPING = {
+    pageId: '72733435',
+    questions: {
+        experienceLevel: {
+            id: '275144457',
+            choices: {
+                beginner: '1930988898',
+                intermediate: '1930988899',
+                expert: '1930988900',
+            },
+        },
+        primaryStruggle: {
+            id: '275144472',
+            choices: {
+                watering: '1930988968',
+                pests: '1930988969',
+                light: '1930988970',
+                temperature: '1930988971',
+                humidity: '1930988972',
+                other: '1930988973',
+            },
+        },
+        sentiment: {
+            id: '275144542',
+            choices: {
+                frustrated: '1930989253',
+                anxious: '1930989254',
+                curious: '1930989255',
+                satisfied: '1930989256',
+                proud: '1930989257',
+            },
+        },
+        plantTypes: {
+            id: '275144552', // Open text field
+        },
+        wasHelpful: {
+            id: '275144582',
+            choices: {
+                yes: '1930989565',
+                no: '1930989566',
+                partially: '1930989567',
+            },
+        },
+        conversationIntent: {
+            id: '275144704',
+            choices: {
+                diagnosis: '1930990171',
+                prevention: '1930990172',
+                learning: '1930990173',
+                emergency: '1930990174',
+            },
+        },
+    },
+};
+
 /**
  * Build the pages payload for SurveyMonkey API
- * Converts ExtractedFeedback to survey question format
+ * Uses actual question IDs and choice IDs for proper API submission
  */
 function buildPagesPayload(feedback: ExtractedFeedback): object[] {
-    const questions: { id: string; answers: { text: string }[] }[] = [];
+    const questions: { id: string; answers: { choice_id?: string; text?: string }[] }[] = [];
 
-    // Only include fields that were extracted
+    // Experience level - single choice
     if (feedback.experienceLevel) {
-        questions.push({
-            id: 'exp_level',
-            answers: [{ text: feedback.experienceLevel }],
-        });
+        const choiceId = SURVEY_MAPPING.questions.experienceLevel.choices[feedback.experienceLevel];
+        if (choiceId) {
+            questions.push({
+                id: SURVEY_MAPPING.questions.experienceLevel.id,
+                answers: [{ choice_id: choiceId }],
+            });
+        }
     }
 
+    // Primary struggle - single choice
     if (feedback.primaryStruggle) {
-        questions.push({
-            id: 'struggle',
-            answers: [{ text: feedback.primaryStruggle }],
-        });
+        const choiceId = SURVEY_MAPPING.questions.primaryStruggle.choices[feedback.primaryStruggle];
+        if (choiceId) {
+            questions.push({
+                id: SURVEY_MAPPING.questions.primaryStruggle.id,
+                answers: [{ choice_id: choiceId }],
+            });
+        }
     }
 
+    // Sentiment - single choice
     if (feedback.sentiment) {
-        questions.push({
-            id: 'sentiment',
-            answers: [{ text: feedback.sentiment }],
-        });
+        const choiceId = SURVEY_MAPPING.questions.sentiment.choices[feedback.sentiment];
+        if (choiceId) {
+            questions.push({
+                id: SURVEY_MAPPING.questions.sentiment.id,
+                answers: [{ choice_id: choiceId }],
+            });
+        }
     }
 
+    // Plant types - open text
     if (feedback.plantTypes && feedback.plantTypes.length > 0) {
         questions.push({
-            id: 'plants',
+            id: SURVEY_MAPPING.questions.plantTypes.id,
             answers: [{ text: feedback.plantTypes.join(', ') }],
         });
     }
 
+    // Was helpful - single choice
     if (feedback.wasHelpful) {
-        questions.push({
-            id: 'helpful',
-            answers: [{ text: feedback.wasHelpful }],
-        });
+        const choiceId = SURVEY_MAPPING.questions.wasHelpful.choices[feedback.wasHelpful];
+        if (choiceId) {
+            questions.push({
+                id: SURVEY_MAPPING.questions.wasHelpful.id,
+                answers: [{ choice_id: choiceId }],
+            });
+        }
     }
 
+    // Conversation intent - single choice
     if (feedback.conversationIntent) {
-        questions.push({
-            id: 'intent',
-            answers: [{ text: feedback.conversationIntent }],
-        });
+        const choiceId = SURVEY_MAPPING.questions.conversationIntent.choices[feedback.conversationIntent];
+        if (choiceId) {
+            questions.push({
+                id: SURVEY_MAPPING.questions.conversationIntent.id,
+                answers: [{ choice_id: choiceId }],
+            });
+        }
     }
 
-    return [{ id: 'main_page', questions }];
+    return [{ id: SURVEY_MAPPING.pageId, questions }];
 }
 
 /**
