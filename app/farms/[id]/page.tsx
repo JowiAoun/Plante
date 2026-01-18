@@ -6,6 +6,7 @@ import { SensorBadge } from '@/components/SensorBadge'
 import { ActionButton } from '@/components/ActionButton'
 import { Toast, ToastContainer } from '@/components/Toast'
 import { AppShell } from '@/components/AppShell'
+import { FarmPhoto } from '@/components/FarmPhoto'
 import { mockNotifications } from '@/mocks/data'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useRouter } from 'next/navigation'
@@ -154,12 +155,9 @@ export default function FarmPage({ params }: FarmPageProps) {
           </div>
         </header>
 
-        {/* Farm visual */}
-        <section className="farm-detail__visual nes-container is-dark">
-          <div className="farm-detail__plant-display">
-            <span className="farm-detail__plant-emoji">🌱</span>
-            <p className="farm-detail__plant-name">Plant Species</p>
-          </div>
+        {/* Live Camera Photo */}
+        <section className="farm-detail__camera">
+          <FarmPhoto farmId={farm.id} autoCapture={true} showFrame={true} />
         </section>
 
         {/* Sensors */}

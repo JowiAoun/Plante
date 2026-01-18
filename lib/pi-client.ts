@@ -62,7 +62,8 @@ export class PiApiClient {
     apiKey?: string;
     timeout?: number;
   }) {
-    this.baseUrl = options?.baseUrl || process.env.PI_API_URL || '';
+    // Use NEXT_PUBLIC_ version so it works on both server and client
+    this.baseUrl = options?.baseUrl || process.env.NEXT_PUBLIC_PI_API_URL || process.env.PI_API_URL || '';
     this.apiKey = options?.apiKey || process.env.PI_API_KEY || '';
     this.timeout = options?.timeout || 10000; // 10 seconds default
   }
