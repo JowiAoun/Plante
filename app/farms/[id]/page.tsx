@@ -21,7 +21,7 @@ export default function FarmPage({ params }: FarmPageProps) {
   const { id } = use(params)
   const router = useRouter()
   const { user: currentUser } = useCurrentUser()
-  
+
   const [farm, setFarm] = useState<Farm | null>(null)
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
@@ -53,23 +53,23 @@ export default function FarmPage({ params }: FarmPageProps) {
   const handleSync = useCallback(async () => {
     if (syncing) return
     setSyncing(true)
-    
+
     try {
       const response = await fetch(`/api/farms/${id}/sync`, {
         method: 'POST',
       })
-      
+
       if (!response.ok) {
         const data = await response.json()
         throw new Error(data.error || 'Sync failed')
       }
-      
+
       setToast({ message: 'Sensors synced!', variant: 'success' })
       await fetchFarm()
     } catch (error) {
-      setToast({ 
-        message: error instanceof Error ? error.message : 'Sync failed', 
-        variant: 'error' 
+      setToast({
+        message: error instanceof Error ? error.message : 'Sync failed',
+        variant: 'error'
       })
     } finally {
       setSyncing(false)
@@ -128,8 +128,29 @@ export default function FarmPage({ params }: FarmPageProps) {
     else router.push(`/?page=${page}`)
   }
 
-  const handleAction = (action: string) => {
-    setToast({ message: `${action} initiated!`, variant: 'success' })
+  const handleWaterAction = async () => {
+    try {
+      const response = await fetch(`/api/farms/${id}/notify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'water' }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setToast({ message: '📱 Water notification sent!', variant: 'success' })
+      } else {
+        setToast({ message: data.reason || 'Watering - SMS not configured', variant: 'success' })
+      }
+    } catch (error) {
+      console.error('Failed to send notification:', error)
+      setToast({ message: 'Watering initiated!', variant: 'success' })
+    }
+  }
+
+  const handleHatchAction = () => {
+    setToast({ message: 'Hatch opening initiated!', variant: 'success' })
   }
 
   // Loading state
@@ -193,7 +214,7 @@ export default function FarmPage({ params }: FarmPageProps) {
           <section className="farm-detail__camera">
             <div className="farm-detail__title-row">
               <h1 className="farm-detail__title">{farm.name}</h1>
-              <span 
+              <span
                 className="farm-detail__status"
                 style={{ color: statusColor, borderColor: statusColor }}
               >
@@ -262,7 +283,7 @@ export default function FarmPage({ params }: FarmPageProps) {
                   icon="💧"
                   size="large"
                   fullWidth
-                  onClick={() => handleAction('Watering')}
+                  onClick={handleWaterAction}
                 />
                 <ActionButton
                   label="Open Hatch"
@@ -270,7 +291,7 @@ export default function FarmPage({ params }: FarmPageProps) {
                   icon="🚪"
                   size="large"
                   fullWidth
-                  onClick={() => handleAction('Hatch opening')}
+                  onClick={handleHatchAction}
                 />
               </div>
             </section>

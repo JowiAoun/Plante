@@ -149,9 +149,10 @@
 /* Force badges to expand and center their content */
 .farm-detail__sensor-grid .sensor-badge {
   flex: 1;
-  min-width: 140px;
+  min-width: 170px;
   justify-content: center;
-  width: 100%; /* Ensure it fills flex item width */
+  width: 100%;
+  /* Ensure it fills flex item width */
 }
 
 /* Center text content within badges */
@@ -200,20 +201,23 @@
 /* Stats */
 .farm-detail__stats {
   margin-bottom: 24px;
-  padding: 16px; /* Reduced padding */
+  padding: 16px;
+  /* Reduced padding */
 }
 
 .farm-detail__stats h2 {
   font-family: var(--font-game);
   font-size: 12px;
   color: var(--color-accent);
-  margin: 0 0 12px 0; /* Reduced margin */
+  margin: 0 0 12px 0;
+  /* Reduced margin */
 }
 
 .farm-detail__stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px; /* Reduced gap */
+  gap: 8px;
+  /* Reduced gap */
   text-align: center;
 }
 

@@ -262,6 +262,7 @@ export type SmsNotificationType =
   | 'temp_low'
   | 'humidity_alert'
   | 'weekly_pulse'
+  | 'farm_action'
   | 'verification';
 
 /**

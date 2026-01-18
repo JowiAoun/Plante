@@ -5,6 +5,9 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'Plante - Pixel Plant Monitoring',
   description: 'A gamified pixel-art plant monitoring application',
+  icons: {
+    icon: '/favicon.ico',
+  },
 }
 
 export default function RootLayout({

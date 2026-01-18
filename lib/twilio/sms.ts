@@ -75,6 +75,7 @@ export async function isRateLimited(userId: string, prefs: SmsPreferences): Prom
 export function isCategoryEnabled(prefs: SmsPreferences, type: SmsNotificationType): boolean {
   switch (type) {
     case 'watering':
+    case 'farm_action':
       return prefs.categories.wateringConfirmation;
     case 'maintenance':
       return prefs.categories.maintenanceReminders;
