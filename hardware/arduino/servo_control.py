@@ -30,7 +30,7 @@ class DualServoController:
         """Connect to Arduino."""
         try:
             self.serial = serial.Serial(self.port, BAUD_RATE, timeout=2)
-            time.sleep(2)  # Wait for Arduino reset
+            time.sleep(3)  # Wait for Arduino reset (needs ~3 seconds)
             
             # Aggressively drain garbage bytes from Arduino startup
             self.serial.reset_input_buffer()
