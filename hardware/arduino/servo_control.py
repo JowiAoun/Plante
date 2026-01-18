@@ -32,10 +32,6 @@ class DualServoController:
             self.serial = serial.Serial(self.port, BAUD_RATE, timeout=2)
             time.sleep(3)  # Wait for Arduino reset (needs ~3 seconds)
             
-            # Aggressively drain garbage bytes from Arduino startup
-            self.serial.reset_input_buffer()
-            time.sleep(0.3)
-            
             # Try multiple times to find READY signal
             for attempt in range(5):
                 # Read whatever is in the buffer
