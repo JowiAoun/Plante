@@ -211,7 +211,7 @@ export const FarmGame: React.FC<FarmGameProps> = ({
 
       {/* Title banner */}
       <div className="farm-game__banner">
-        <span className="farm-game__title">{isOwnFarm ? 'YOUR FARM' : `${owner.displayName.toUpperCase()}'S FARM`}</span>
+        <span className="farm-game__title">{isOwnFarm ? 'YOUR FARMS' : `${owner.displayName.toUpperCase()}'S FARMS`}</span>
       </div>
 
       <div 
