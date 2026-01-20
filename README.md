@@ -1,6 +1,10 @@
 # 🌱 Plante
 
+> **🏆 Best Designed Award** – uOttaHack 8 2025
+
 A gamified, pixel-art smart plant monitoring system with AI chat, Raspberry Pi sensor integration, and real-time farm management.
+
+**[Devpost](https://devpost.com/software/plante)** | **[Demo Video](https://www.youtube.com/watch?v=7n9EgHPRCC8)**
 
 ## ✨ Features
 
@@ -69,7 +73,7 @@ Copy `.env.example` to `.env` and configure:
 | AI | Google Gemini API |
 | Voice | ElevenLabs TTS |
 | SMS | Twilio |
-| Hardware | Raspberry Pi 4, Arduino, DHT22, Pi Camera |
+| Hardware | Raspberry Pi 4, Arduino, DHT22, Pi Camera, 2x SG90 Servos, SparkFun Soil Moisture Sensor, 9V Battery, Power Module, Breadboard |
 
 ## 🧪 Development
 
