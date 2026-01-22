@@ -1,6 +1,6 @@
 # 🌱 Plante
 
-> **🏆 Best Designed Award** – uOttaHack 8 2025
+> **🏆 Best Designed Award** – uOttaHack 8 2026
 
 A gamified, pixel-art smart plant monitoring system with AI chat, Raspberry Pi sensor integration, and real-time farm management.
 
