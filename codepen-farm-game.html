@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plante — Farm Explorer</title>
+  <!-- React + ReactDOM + Babel for JSX -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- DiceBear for pixel avatars -->
+  <script src="https://cdn.jsdelivr.net/npm/@dicebear/core@9/dist/index.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@dicebear/collection@9/dist/index.umd.js"></script>
+  <!-- Google Font for pixel look -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <style>
+    /* ========== Theme Variables ========== */
+    :root {
+      --color-background: #1a1a2e;
+      --color-surface: #2a2a4a;
+      --color-border: #4a4a6a;
+      --color-text: #e8e8f0;
+      --color-text-muted: #8888aa;
+      --color-primary: #5a3d8e;
+      --color-accent: #f0c040;
+      --color-black: #0a0a18;
+      --color-dark-gray: #222240;
+      --color-dark-purple: #2e1e4e;
+      --color-dark-blue: #1a1a3e;
+      --color-lavender: #7a6aaa;
+      --color-healthy: #4ade80;
+      --color-warning: #facc15;
+      --color-critical: #ef4444;
+      --font-game: 'Press Start 2P', monospace;
+      --font-ui: 'Press Start 2P', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #0e0e1a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: var(--font-ui);
+    }
+
+    #root { width: 100%; max-width: 768px; }
+
+    /* ========== Farm Game ========== */
+    .farm-game {
+      position: relative;
+      width: 100%;
+      max-width: 768px;
+      margin: 0 auto;
+      overflow: hidden;
+      background-color: var(--color-background);
+      image-rendering: pixelated;
+    }
+
+    .farm-game__banner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      background: linear-gradient(180deg, var(--color-dark-purple) 0%, var(--color-dark-blue) 100%);
+      border: 4px solid var(--color-border);
+      border-bottom: none;
+    }
+
+    .farm-game__title {
+      font-family: var(--font-game);
+      font-size: 14px;
+      color: var(--color-accent);
+      text-shadow: 2px 2px 0 var(--color-black);
+    }
+
+    .farm-game__container {
+      position: relative;
+      width: 768px;
+      height: 480px;
+      border: 4px solid var(--color-border);
+      overflow: hidden;
+      cursor: default;
+    }
+
+    .farm-game__camera {
+      position: absolute;
+      width: 768px;
+      height: 480px;
+      top: 0;
+      left: 0;
+    }
+
+    /* Pixel-art farm background */
+    .farm-game__background {
+      position: absolute;
+      inset: 0;
+      image-rendering: pixelated;
+      background-image: url('https://dev-to-uploads.s3.amazonaws.com/uploads/articles/dm6h7ba82n82jbup7f3a.png');
+      background-size: cover;
+      background-position: center;
+    }
+
+    /* ========== Player ========== */
+    .farm-game__player {
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      transition: none;
+      z-index: 20;
+      image-rendering: pixelated;
+    }
+
+    .farm-game__player--moving {
+      animation: farm-player-bob 0.3s steps(2) infinite;
+    }
+
+    @keyframes farm-player-bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    .farm-game__player-avatar { width: 100%; height: 100%; }
+
+    /* ========== Speech Bubble ========== */
+    .farm-game__speech-bubble {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(255, 255, 255, 0.95);
+      color: #1a1a2e;
+      font-family: var(--font-game);
+      font-size: 10px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 2px solid var(--color-border);
+      white-space: nowrap;
+      margin-bottom: 4px;
+      animation: speech-pop 0.2s ease-out;
+      z-index: 30;
+    }
+
+    .farm-game__speech-bubble::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: rgba(255, 255, 255, 0.95);
+    }
+
+    @keyframes speech-pop {
+      0% { transform: translateX(-50%) scale(0); opacity: 0; }
+      100% { transform: translateX(-50%) scale(1); opacity: 1; }
+    }
+
+    /* ========== Farm Spots ========== */
+    .farm-game__farm-spot {
+      position: absolute;
+      width: 64px;
+      height: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      z-index: 10;
+    }
+
+    .farm-game__farm-icon {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      background-color: var(--color-surface);
+      border: 3px solid var(--color-border);
+      border-radius: 4px;
+      transition: transform 0.1s, border-color 0.1s;
+    }
+
+    .farm-game__farm-spot--active .farm-game__farm-icon {
+      transform: scale(1.1);
+      border-color: var(--color-accent);
+    }
+
+    .farm-game__farm-spot--healthy .farm-game__farm-icon {
+      border-color: var(--color-healthy);
+      box-shadow: 0 0 8px var(--color-healthy);
+    }
+
+    .farm-game__farm-spot--warning .farm-game__farm-icon {
+      border-color: var(--color-warning);
+      box-shadow: 0 0 8px var(--color-warning);
+    }
+
+    .farm-game__farm-spot--critical .farm-game__farm-icon {
+      border-color: var(--color-critical);
+      box-shadow: 0 0 8px var(--color-critical);
+      animation: farm-pulse 1s steps(2) infinite;
+    }
+
+    @keyframes farm-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    .farm-game__farm-label {
+      font-family: var(--font-game);
+      font-size: 8px;
+      color: var(--color-text);
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 2px 6px;
+      border-radius: 2px;
+      text-shadow: 1px 1px 0 var(--color-black);
+      max-width: 80px;
+      text-align: center;
+      word-wrap: break-word;
+    }
+
+    /* ========== Farm Info Popup ========== */
+    .farm-game__popup {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 320px;
+      padding: 12px 16px;
+      background-color: rgba(10, 10, 24, 0.95);
+      border: 4px solid var(--color-accent);
+      text-align: center;
+      z-index: 40;
+      animation: popup-slide 0.2s ease-out;
+    }
+
+    @keyframes popup-slide {
+      0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+      100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    .farm-game__popup-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .farm-game__popup-icon { font-size: 24px; }
+
+    .farm-game__popup-title {
+      font-family: var(--font-game);
+      font-size: 12px;
+      color: var(--color-accent);
+      margin: 0;
+    }
+
+    .farm-game__popup-status {
+      font-family: var(--font-game);
+      font-size: 10px;
+      text-transform: uppercase;
+      margin: 0 0 8px 0;
+    }
+
+    .farm-game__popup-sensors {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .farm-game__popup-sensor {
+      font-family: var(--font-ui);
+      font-size: 10px;
+      color: var(--color-text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .farm-game__popup-sensor-icon { font-size: 12px; }
+
+    /* ========== Instructions ========== */
+    .farm-game__instructions {
+      text-align: center;
+      padding: 12px;
+      font-family: var(--font-ui);
+      font-size: 10px;
+      color: var(--color-text-muted);
+    }
+
+    .farm-game__instructions strong {
+      color: var(--color-accent);
+    }
+
+    /* ========== Pixel Avatar ========== */
+    .pixel-avatar {
+      display: inline-block;
+      overflow: hidden;
+      background-color: var(--color-surface);
+      border: 2px solid var(--color-border);
+      image-rendering: pixelated;
+    }
+
+    .pixel-avatar--small  { width: 32px; height: 32px; }
+    .pixel-avatar--medium { width: 48px; height: 48px; }
+    .pixel-avatar--large  { width: 64px; height: 64px; }
+
+    /* Emote Animations */
+    @keyframes emote-wave {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-15deg); }
+      75% { transform: rotate(15deg); }
+    }
+    @keyframes emote-jump {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+    @keyframes emote-spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes emote-nod {
+      0%, 100% { transform: translateY(0); }
+      33% { transform: translateY(-5px); }
+      66% { transform: translateY(-5px); }
+    }
+    @keyframes emote-shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-8px); }
+      80% { transform: translateX(8px); }
+    }
+    @keyframes emote-celebrate {
+      0%, 100% { transform: scale(1) translateY(0) rotate(0deg); }
+      25% { transform: scale(1.2) translateY(-15px) rotate(-10deg); }
+      50% { transform: scale(1.1) translateY(-10px) rotate(10deg); }
+      75% { transform: scale(1.2) translateY(-15px) rotate(-5deg); }
+    }
+
+    .pixel-avatar--emote-wave      { animation: emote-wave 0.8s ease-in-out; }
+    .pixel-avatar--emote-jump      { animation: emote-jump 0.5s ease-out; }
+    .pixel-avatar--emote-spin      { animation: emote-spin 0.6s linear; }
+    .pixel-avatar--emote-nod       { animation: emote-nod 0.5s ease-in-out; }
+    .pixel-avatar--emote-shake     { animation: emote-shake 0.4s linear; }
+    .pixel-avatar--emote-celebrate { animation: emote-celebrate 1s ease-in-out; }
+
+    /* ========== Emote Menu ========== */
+    .emote-menu {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+    }
+
+    .emote-menu__backdrop {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+
+    .emote-menu__container {
+      position: relative;
+      background-color: rgba(30, 30, 50, 0.9);
+      border: 3px solid var(--color-border);
+      border-radius: 4px;
+      padding: 12px;
+      z-index: 101;
+    }
+
+    .emote-menu__title {
+      font-family: var(--font-game);
+      font-size: 10px;
+      color: var(--color-text-muted);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .emote-menu__grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .emote-menu__btn {
+      position: relative;
+      width: 48px; height: 48px;
+      background-color: rgba(60, 60, 80, 0.8);
+      border: 2px solid var(--color-border);
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.1s;
+    }
+
+    .emote-menu__btn:hover {
+      background-color: rgba(80, 80, 120, 0.9);
+      border-color: var(--color-accent);
+      transform: scale(1.1);
+    }
+
+    .emote-menu__btn:active { transform: scale(0.95); }
+    .emote-menu__icon { font-size: 24px; }
+    .emote-menu__key {
+      position: absolute;
+      bottom: 2px; right: 4px;
+      font-family: var(--font-game);
+      font-size: 8px;
+      color: var(--color-text-muted);
+    }
+
+    /* ========== Joystick (always visible) ========== */
+    .farm-game__joystick {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      z-index: 50;
+      display: block;
+    }
+
+    .joystick {
+      position: relative;
+      border-radius: 4px;
+      background-color: rgba(30, 30, 50, 0.6);
+      border: 3px solid var(--color-border);
+      touch-action: none;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      image-rendering: pixelated;
+    }
+
+    .joystick__knob {
+      position: absolute;
+      border-radius: 4px;
+      background-color: rgba(80, 80, 100, 0.8);
+      border: 2px solid var(--color-accent);
+      transition: background-color 0.1s;
+    }
+
+    .joystick__knob--active {
+      background-color: rgba(100, 100, 140, 0.9);
+      border-color: var(--color-primary);
+      box-shadow: 0 0 8px var(--color-accent);
+    }
+
+    /* ========== Responsive ========== */
+    @media (max-width: 768px) {
+      .farm-game__container {
+        width: 100%;
+        height: 280px;
+      }
+      .farm-game__camera {
+        transform: translate(var(--camera-x, 0), var(--camera-y, 0));
+      }
+      .farm-game__title { font-size: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" data-type="module">
+    const { useState, useCallback, useMemo, useEffect, useRef } = React;
+
+    /* ========== Constants ========== */
+    const GAME_WIDTH = 768;
+    const GAME_HEIGHT = 480;
+    const BASE_PLAYER_SPEED = 4;
+    const MAX_PLAYER_SPEED = 6;
+    const INTERACTION_DISTANCE = 60;
+
+    /* ========== Mock Data ========== */
+    const MOCK_OWNER = {
+      id: 'demo-user',
+      username: 'farmer_jane',
+      displayName: 'Farmer Jane',
+      avatarSeed: 'farmer_jane',
+      level: 12,
+      xp: 2400,
+    };
+
+    const MOCK_FARMS = [
+      {
+        id: 'farm-1', name: 'Tomato Garden', ownerId: 'demo-user', status: 'healthy',
+        thumbnailUrl: '', lastSeen: '2m ago',
+        sensors: {
+          temp: { value: 24, unit: '°C', trend: 'stable' },
+          humidity: { value: 68, unit: '%', trend: 'up' },
+          soil: { value: 45, unit: '%', trend: 'stable' },
+        },
+      },
+      {
+        id: 'farm-2', name: 'Herb Patch', ownerId: 'demo-user', status: 'healthy',
+        thumbnailUrl: '', lastSeen: '5m ago',
+        sensors: {
+          temp: { value: 22, unit: '°C', trend: 'stable' },
+          humidity: { value: 55, unit: '%', trend: 'stable' },
+          soil: { value: 52, unit: '%', trend: 'down' },
+        },
+      },
+      {
+        id: 'farm-3', name: 'Pepper Plot', ownerId: 'demo-user', status: 'warning',
+        thumbnailUrl: '', lastSeen: '15m ago',
+        sensors: {
+          temp: { value: 30, unit: '°C', trend: 'up' },
+          humidity: { value: 40, unit: '%', trend: 'down' },
+          soil: { value: 28, unit: '%', trend: 'down' },
+        },
+      },
+      {
+        id: 'farm-4', name: 'Succulent Corner', ownerId: 'demo-user', status: 'healthy',
+        thumbnailUrl: '', lastSeen: '1m ago',
+        sensors: {
+          temp: { value: 26, unit: '°C', trend: 'stable' },
+          humidity: { value: 30, unit: '%', trend: 'stable' },
+          soil: { value: 15, unit: '%', trend: 'stable' },
+        },
+      },
+      {
+        id: 'farm-5', name: 'Basil Beds', ownerId: 'demo-user', status: 'critical',
+        thumbnailUrl: '', lastSeen: '32m ago',
+        sensors: {
+          temp: { value: 35, unit: '°C', trend: 'up' },
+          humidity: { value: 25, unit: '%', trend: 'down' },
+          soil: { value: 12, unit: '%', trend: 'down' },
+        },
+      },
+    ];
+
+    /* ========== Emotes ========== */
+    const EMOTES = [
+      { id: 'wave', icon: '👋', label: 'Wave', key: '1' },
+      { id: 'jump', icon: '🦘', label: 'Jump', key: '2' },
+      { id: 'spin', icon: '🔄', label: 'Spin', key: '3' },
+      { id: 'nod', icon: '👍', label: 'Nod', key: '4' },
+      { id: 'shake', icon: '❌', label: 'Shake', key: '5' },
+      { id: 'celebrate', icon: '🎉', label: 'Celebrate', key: '6' },
+    ];
+
+    /* ========== Helpers ========== */
+    const getFarmIcon = (name) => {
+      const lower = name.toLowerCase();
+      if (lower.includes('tomato')) return '🍅';
+      if (lower.includes('herb') || lower.includes('basil')) return '🌿';
+      if (lower.includes('pepper')) return '🌶️';
+      if (lower.includes('succulent')) return '🌵';
+      return '🌱';
+    };
+
+    const getStatusColor = (status) => {
+      switch (status) {
+        case 'healthy': return 'var(--color-healthy)';
+        case 'warning': return 'var(--color-warning)';
+        case 'critical': return 'var(--color-critical)';
+        default: return 'var(--color-text-muted)';
+      }
+    };
+
+    /* ========== PixelAvatar Component ========== */
+    const PixelAvatar = ({ username, size = 'medium', className = '', seed, emote }) => {
+      const avatarSvg = useMemo(() => {
+        try {
+          const avatar = dicebear.createAvatar(dicebearCollection.pixelArt, {
+            seed: seed || username,
+            scale: 100,
+            translateY: 10,
+            backgroundColor: ['transparent'],
+          });
+          return avatar.toString();
+        } catch (e) {
+          // Fallback pixel face
+          return '<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" fill="#5a3d8e"/><rect x="14" y="16" width="6" height="6" fill="#fff"/><rect x="28" y="16" width="6" height="6" fill="#fff"/><rect x="18" y="30" width="12" height="4" fill="#fff"/></svg>';
+        }
+      }, [username, seed]);
+
+      const emoteClass = emote ? `pixel-avatar--emote-${emote}` : '';
+
+      return (
+        <div
+          className={`pixel-avatar pixel-avatar--${size} ${emoteClass} ${className}`}
+          role="img"
+          aria-label={`Avatar for ${username}`}
+          dangerouslySetInnerHTML={{ __html: avatarSvg }}
+        />
+      );
+    };
+
+    /* ========== EmoteMenu Component ========== */
+    const EmoteMenu = ({ isOpen, onSelect, onClose }) => {
+      if (!isOpen) return null;
+      return (
+        <div className="emote-menu" onClick={(e) => e.stopPropagation()}>
+          <div className="emote-menu__backdrop" onClick={onClose} />
+          <div className="emote-menu__container">
+            <div className="emote-menu__title">Emotes (G to close)</div>
+            <div className="emote-menu__grid">
+              {EMOTES.map((emote) => (
+                <button
+                  key={emote.id}
+                  className="emote-menu__btn"
+                  onClick={() => { onSelect(emote.id); onClose(); }}
+                  title={emote.label}
+                >
+                  <span className="emote-menu__icon">{emote.icon}</span>
+                  <span className="emote-menu__key">{emote.key}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    /* ========== Joystick Component ========== */
+    const Joystick = ({ onMove, onStop, size = 100 }) => {
+      const baseRef = useRef(null);
+      const [isDragging, setIsDragging] = useState(false);
+      const [position, setPosition] = useState({ x: 0, y: 0 });
+      const knobSize = size * 0.4;
+      const maxDistance = (size - knobSize) / 2;
+
+      const handleMove = useCallback((clientX, clientY) => {
+        if (!baseRef.current) return;
+        const rect = baseRef.current.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        let deltaX = clientX - centerX;
+        let deltaY = clientY - centerY;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        if (distance > maxDistance) {
+          const scale = maxDistance / distance;
+          deltaX *= scale;
+          deltaY *= scale;
+        }
+        setPosition({ x: deltaX, y: deltaY });
+        onMove({
+          x: deltaX / maxDistance,
+          y: deltaY / maxDistance,
+          magnitude: Math.min(distance / maxDistance, 1),
+          angle: Math.atan2(deltaY, deltaX),
+        });
+      }, [maxDistance, onMove]);
+
+      const handleStart = useCallback((clientX, clientY) => {
+        setIsDragging(true);
+        handleMove(clientX, clientY);
+      }, [handleMove]);
+
+      const handleEnd = useCallback(() => {
+        setIsDragging(false);
+        setPosition({ x: 0, y: 0 });
+        onStop();
+      }, [onStop]);
+
+      const handleTouchStart = useCallback((e) => {
+        e.preventDefault();
+        handleStart(e.touches[0].clientX, e.touches[0].clientY);
+      }, [handleStart]);
+
+      const handleTouchMove = useCallback((e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        handleMove(e.touches[0].clientX, e.touches[0].clientY);
+      }, [isDragging, handleMove]);
+
+      const handleTouchEnd = useCallback((e) => {
+        e.preventDefault();
+        handleEnd();
+      }, [handleEnd]);
+
+      const handleMouseDown = useCallback((e) => {
+        e.preventDefault();
+        handleStart(e.clientX, e.clientY);
+      }, [handleStart]);
+
+      useEffect(() => {
+        if (!isDragging) return;
+        const onMM = (e) => handleMove(e.clientX, e.clientY);
+        const onMU = () => handleEnd();
+        window.addEventListener('mousemove', onMM);
+        window.addEventListener('mouseup', onMU);
+        return () => {
+          window.removeEventListener('mousemove', onMM);
+          window.removeEventListener('mouseup', onMU);
+        };
+      }, [isDragging, handleMove, handleEnd]);
+
+      return (
+        <div
+          ref={baseRef}
+          className="joystick"
+          style={{ width: size, height: size }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onMouseDown={handleMouseDown}
+        >
+          <div
+            className={`joystick__knob ${isDragging ? 'joystick__knob--active' : ''}`}
+            style={{
+              width: knobSize,
+              height: knobSize,
+              transform: `translate(${position.x}px, ${position.y}px)`,
+            }}
+          />
+        </div>
+      );
+    };
+
+    /* ========== Game Loop Logic ========== */
+    const canMoveTo = (position, layout, playerSize) => {
+      const halfSize = playerSize / 2;
+      const gameWidth = layout.gridWidth * layout.tileSize;
+      const gameHeight = layout.gridHeight * layout.tileSize;
+      const wallPadding = 20;
+      if (position.x - halfSize < wallPadding) return false;
+      if (position.x + halfSize > gameWidth - wallPadding) return false;
+      if (position.y - halfSize < wallPadding) return false;
+      if (position.y + halfSize > gameHeight - wallPadding) return false;
+      return true;
+    };
+
+    const findNearbyFarm = (playerPos, farmSpots) => {
+      for (const spot of farmSpots) {
+        const dx = playerPos.x - (spot.position.x + spot.size.width / 2);
+        const dy = playerPos.y - (spot.position.y + spot.size.height / 2);
+        if (Math.sqrt(dx * dx + dy * dy) < INTERACTION_DISTANCE) return spot.farm.id;
+      }
+      return null;
+    };
+
+    const getDirection = (input) => {
+      if (input.up) return 'up';
+      if (input.down) return 'down';
+      if (input.left) return 'left';
+      if (input.right) return 'right';
+      return null;
+    };
+
+    const useFarmGameLoop = ({ layout, avatarSeed, onFarmInteract }) => {
+      const gameContainerRef = useRef(null);
+      const inputRef = useRef({ up: false, down: false, left: false, right: false });
+      const joystickRef = useRef({ x: 0, y: 0, magnitude: 0 });
+      const animationFrameRef = useRef(null);
+
+      const [gameState, setGameState] = useState({
+        player: {
+          id: 'player',
+          position: { ...layout.spawnPoint },
+          size: { width: 48, height: 48 },
+          direction: null,
+          isMoving: false,
+          avatarSeed,
+        },
+        activeFarm: null,
+        isInitialized: false,
+      });
+
+      useEffect(() => {
+        const handleKeyDown = (e) => {
+          switch (e.key.toLowerCase()) {
+            case 'w': case 'arrowup':    inputRef.current.up = true; e.preventDefault(); break;
+            case 's': case 'arrowdown':  inputRef.current.down = true; e.preventDefault(); break;
+            case 'a': case 'arrowleft':  inputRef.current.left = true; e.preventDefault(); break;
+            case 'd': case 'arrowright': inputRef.current.right = true; e.preventDefault(); break;
+          }
+        };
+        const handleKeyUp = (e) => {
+          switch (e.key.toLowerCase()) {
+            case 'w': case 'arrowup':    inputRef.current.up = false; break;
+            case 's': case 'arrowdown':  inputRef.current.down = false; break;
+            case 'a': case 'arrowleft':  inputRef.current.left = false; break;
+            case 'd': case 'arrowright': inputRef.current.right = false; break;
+          }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+        return () => {
+          window.removeEventListener('keydown', handleKeyDown);
+          window.removeEventListener('keyup', handleKeyUp);
+        };
+      }, []);
+
+      useEffect(() => {
+        const gameLoop = () => {
+          const input = inputRef.current;
+          const isMoving = input.up || input.down || input.left || input.right;
+          const direction = getDirection(input);
+
+          setGameState((prev) => {
+            let newX = prev.player.position.x;
+            let newY = prev.player.position.y;
+            const joystick = joystickRef.current;
+            const hasJoystickInput = joystick.magnitude > 0.1;
+
+            if (hasJoystickInput) {
+              const speed = BASE_PLAYER_SPEED + (MAX_PLAYER_SPEED - BASE_PLAYER_SPEED) * joystick.magnitude;
+              newX += joystick.x * speed;
+              newY += joystick.y * speed;
+            } else {
+              if (input.up)    newY -= BASE_PLAYER_SPEED;
+              if (input.down)  newY += BASE_PLAYER_SPEED;
+              if (input.left)  newX -= BASE_PLAYER_SPEED;
+              if (input.right) newX += BASE_PLAYER_SPEED;
+            }
+
+            const newPosition = { x: newX, y: newY };
+            if (!canMoveTo(newPosition, layout, prev.player.size.width)) {
+              newPosition.x = prev.player.position.x;
+              newPosition.y = prev.player.position.y;
+            }
+
+            const nearbyFarm = findNearbyFarm(newPosition, layout.farmSpots);
+            if (nearbyFarm !== prev.activeFarm) onFarmInteract?.(nearbyFarm);
+
+            const actuallyMoving = isMoving || hasJoystickInput;
+
+            return {
+              ...prev,
+              player: {
+                ...prev.player,
+                position: newPosition,
+                direction: direction || prev.player.direction,
+                isMoving: actuallyMoving,
+              },
+              activeFarm: nearbyFarm,
+              isInitialized: true,
+            };
+          });
+
+          animationFrameRef.current = requestAnimationFrame(gameLoop);
+        };
+
+        animationFrameRef.current = requestAnimationFrame(gameLoop);
+        return () => { if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current); };
+      }, [layout, onFarmInteract]);
+
+      const setJoystickInput = useCallback((x, y, magnitude) => {
+        joystickRef.current = { x, y, magnitude };
+      }, []);
+
+      useEffect(() => {
+        const container = gameContainerRef.current;
+        if (container) container._setJoystickInput = setJoystickInput;
+      }, [setJoystickInput]);
+
+      return { gameState, gameContainerRef };
+    };
+
+    /* ========== Farm Layout ========== */
+    const createFarmLayout = (farms) => {
+      const GRID_WIDTH = 16;
+      const GRID_HEIGHT = 10;
+      const TILE_SIZE = 48;
+
+      const farmSpots = farms.slice(0, 8).map((farm, index) => {
+        const row = Math.floor(index / 4);
+        const col = index % 4;
+        const x = 280 + col * 110;
+        const y = row === 0 ? 200 : 340;
+        return {
+          id: `farm-${farm.id}`,
+          farm,
+          position: { x, y },
+          size: { width: 64, height: 80 },
+        };
+      });
+
+      return {
+        gridWidth: GRID_WIDTH,
+        gridHeight: GRID_HEIGHT,
+        tileSize: TILE_SIZE,
+        spawnPoint: { x: 150, y: 250 },
+        farmSpots,
+      };
+    };
+
+    /* ========== FarmGame Component ========== */
+    const FarmGame = ({ avatarSeed, owner, farms }) => {
+      const [activeFarmId, setActiveFarmId] = useState(null);
+      const [viewportWidth, setViewportWidth] = useState(GAME_WIDTH);
+      const [showEmoteMenu, setShowEmoteMenu] = useState(false);
+      const [currentEmote, setCurrentEmote] = useState(null);
+      const [speechText, setSpeechText] = useState(null);
+
+      const WAVE_GREETINGS = ['Hi!', 'Hello!', 'Hey!'];
+
+      useEffect(() => {
+        const updateWidth = () => setViewportWidth(Math.min(window.innerWidth, GAME_WIDTH));
+        updateWidth();
+        window.addEventListener('resize', updateWidth);
+        return () => window.removeEventListener('resize', updateWidth);
+      }, []);
+
+      useEffect(() => {
+        const handleEmoteKey = (e) => {
+          if (e.key.toLowerCase() === 'g') {
+            setShowEmoteMenu(prev => !prev);
+            return;
+          }
+          if (showEmoteMenu && e.key >= '1' && e.key <= '6') {
+            const index = parseInt(e.key) - 1;
+            if (EMOTES[index]) handleEmoteSelect(EMOTES[index].id);
+          }
+        };
+        window.addEventListener('keydown', handleEmoteKey);
+        return () => window.removeEventListener('keydown', handleEmoteKey);
+      }, [showEmoteMenu]);
+
+      const handleEmoteSelect = useCallback((emote) => {
+        setCurrentEmote(emote);
+        setShowEmoteMenu(false);
+        if (emote === 'wave') {
+          setSpeechText(WAVE_GREETINGS[Math.floor(Math.random() * WAVE_GREETINGS.length)]);
+          setTimeout(() => setSpeechText(null), 2000);
+        }
+        setTimeout(() => setCurrentEmote(null), 1200);
+      }, []);
+
+      const layout = useMemo(() => createFarmLayout(farms), [farms]);
+
+      const { gameState, gameContainerRef } = useFarmGameLoop({
+        layout,
+        avatarSeed,
+        onFarmInteract: setActiveFarmId,
+      });
+
+      const activeFarm = useMemo(() => {
+        if (!activeFarmId) return null;
+        return farms.find((f) => f.id === activeFarmId) || null;
+      }, [activeFarmId, farms]);
+
+      const handleJoystickMove = useCallback((output) => {
+        const container = gameContainerRef.current;
+        if (container && container._setJoystickInput) {
+          container._setJoystickInput(output.x, output.y, output.magnitude);
+        }
+      }, [gameContainerRef]);
+
+      const handleJoystickStop = useCallback(() => {
+        const container = gameContainerRef.current;
+        if (container && container._setJoystickInput) {
+          container._setJoystickInput(0, 0, 0);
+        }
+      }, [gameContainerRef]);
+
+      const cameraOffset = useMemo(() => {
+        const playerX = gameState.player.position.x;
+        const playerY = gameState.player.position.y;
+        const viewportHeight = 280;
+        let offsetX = viewportWidth / 2 - playerX;
+        let offsetY = viewportHeight / 2 - playerY;
+        offsetX = Math.min(0, Math.max(offsetX, viewportWidth - GAME_WIDTH));
+        offsetY = Math.min(0, Math.max(offsetY, viewportHeight - GAME_HEIGHT));
+        return { x: offsetX, y: offsetY };
+      }, [gameState.player.position, viewportWidth]);
+
+
+      return (
+        <div className="farm-game">
+          <div className="farm-game__banner">
+            <span className="farm-game__title">{`${owner.displayName.toUpperCase()}'S FARMS`}</span>
+          </div>
+
+          <div
+            ref={gameContainerRef}
+            className="farm-game__container"
+            tabIndex={0}
+            role="application"
+            aria-label="Farm exploration game. Use arrow keys or WASD to move."
+          >
+            <div
+              className="farm-game__camera"
+              style={{
+                '--camera-x': `${cameraOffset.x}px`,
+                '--camera-y': `${cameraOffset.y}px`,
+              }}
+            >
+              <div className="farm-game__background" />
+
+              {layout.farmSpots.map((spot) => {
+                const isActive = activeFarmId === spot.farm.id;
+                const icon = getFarmIcon(spot.farm.name);
+                return (
+                  <div
+                    key={spot.id}
+                    className={`farm-game__farm-spot farm-game__farm-spot--${spot.farm.status} ${isActive ? 'farm-game__farm-spot--active' : ''}`}
+                    style={{ left: spot.position.x, top: spot.position.y }}
+                  >
+                    <div className="farm-game__farm-icon">{icon}</div>
+                    <span className="farm-game__farm-label">{spot.farm.name}</span>
+                  </div>
+                );
+              })}
+
+              <div
+                className={`farm-game__player ${gameState.player.isMoving ? 'farm-game__player--moving' : ''}`}
+                style={{
+                  left: gameState.player.position.x - gameState.player.size.width / 2,
+                  top: gameState.player.position.y - gameState.player.size.height / 2,
+                }}
+              >
+                {speechText && <div className="farm-game__speech-bubble">{speechText}</div>}
+                <div className="farm-game__player-avatar">
+                  <PixelAvatar
+                    username={avatarSeed}
+                    seed={avatarSeed}
+                    size="medium"
+                    emote={currentEmote}
+                  />
+                </div>
+              </div>
+
+              <EmoteMenu
+                isOpen={showEmoteMenu}
+                onSelect={handleEmoteSelect}
+                onClose={() => setShowEmoteMenu(false)}
+              />
+            </div>
+
+            <div className="farm-game__joystick">
+              <Joystick
+                onMove={handleJoystickMove}
+                onStop={handleJoystickStop}
+                size={100}
+              />
+            </div>
+          </div>
+
+          {activeFarm && (
+            <div className="farm-game__popup">
+              <div className="farm-game__popup-header">
+                <span className="farm-game__popup-icon">{getFarmIcon(activeFarm.name)}</span>
+                <h3 className="farm-game__popup-title">{activeFarm.name}</h3>
+              </div>
+              <p className="farm-game__popup-status" style={{ color: getStatusColor(activeFarm.status) }}>
+                {activeFarm.status === 'healthy' ? '✓ Healthy' :
+                 activeFarm.status === 'warning' ? '⚠ Needs Attention' :
+                 '⚠ Critical'}
+              </p>
+              <div className="farm-game__popup-sensors">
+                <span className="farm-game__popup-sensor">
+                  <span className="farm-game__popup-sensor-icon">🌡️</span>
+                  {activeFarm.sensors.temp.value}{activeFarm.sensors.temp.unit}
+                </span>
+                <span className="farm-game__popup-sensor">
+                  <span className="farm-game__popup-sensor-icon">💧</span>
+                  {activeFarm.sensors.humidity.value}{activeFarm.sensors.humidity.unit}
+                </span>
+                <span className="farm-game__popup-sensor">
+                  <span className="farm-game__popup-sensor-icon">🌱</span>
+                  {activeFarm.sensors.soil.value}{activeFarm.sensors.soil.unit}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="farm-game__instructions">
+            Use <strong>WASD</strong> or <strong>Arrow keys</strong> to explore • Walk near plants to view details • Press <strong>G</strong> for emotes
+          </div>
+        </div>
+      );
+    };
+
+    /* ========== Mount ========== */
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(
+      <FarmGame
+        avatarSeed="farmer_jane"
+        owner={MOCK_OWNER}
+        farms={MOCK_FARMS}
+      />
+    );
+  </script>
+</body>
+</html>
