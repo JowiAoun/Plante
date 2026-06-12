@@ -26,7 +26,7 @@ The project was built in 36 hours at [uOttaHack 8](https://devpost.com/software/
 
 | Full hardware & software demo | Farm mini-game on CodePen |
 |:---:|:---:|
-| [![Plante hardware and software demo](https://img.youtube.com/vi/7n9EgHPRCC8/hqdefault.jpg)](https://www.youtube.com/watch?v=7n9EgHPRCC8) | [![Farm mini-game on CodePen](https://shots.codepen.io/zkttazgw-the-flexboxer/pen/JoRYVRz-800.jpg)](https://codepen.io/zkttazgw-the-flexboxer/full/JoRYVRz) |
+| [![Plante hardware and software demo](public/images/demo-video-play.jpg)](https://www.youtube.com/watch?v=7n9EgHPRCC8) | [![Farm mini-game on CodePen](public/images/game-screenshot-play.png)](https://codepen.io/zkttazgw-the-flexboxer/full/JoRYVRz) |
 
 - **Live app:** [plante-flame.vercel.app](https://plante-flame.vercel.app). Feel free to register! AI features were disabled after the hackathon ended.
 - **Farm mini-game:** A [CodePen demo](https://codepen.io/zkttazgw-the-flexboxer/full/JoRYVRz) of the little farm game, written in TypeScript from scratch. Press `G` to express yourself!
