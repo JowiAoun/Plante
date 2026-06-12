@@ -9,7 +9,7 @@
 
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { DEMO_SESSION_SECRET, DEMO_USER_ID } from './demo-config';
+import { DEMO_SESSION_COOKIE, DEMO_SESSION_SECRET, DEMO_USER_ID } from './demo-config';
 
 // next-auth v4 derives the request origin from x-forwarded headers when
 // VERCEL or AUTH_TRUST_HOST is set. VERCEL is a system env var that Vercel
@@ -48,6 +48,20 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: 'jwt',
+  },
+  cookies: {
+    // Fixed name read by both the auth route and the middleware; see
+    // DEMO_SESSION_COOKIE. secure:false so the same cookie works on
+    // http://localhost and https production (demo only, no secrets).
+    sessionToken: {
+      name: DEMO_SESSION_COOKIE,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: false,
+      },
+    },
   },
   callbacks: {
     async jwt({ token, user, trigger, session }) {
