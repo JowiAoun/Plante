@@ -15,6 +15,9 @@ dist-ssr
 .env
 .env.local
 
+# Local tooling state
+.omc/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
