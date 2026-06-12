@@ -24,19 +24,9 @@ export const Leaderboard: React.FC = () => {
       try {
         const res = await fetch('/api/leaderboard?limit=50');
         if (res.ok) {
-          const realUsers = await res.json();
-          // Merge mock users and real users
-          // Ensure we don't duplicate if we happen to have clashing IDs (unlikely with mocks)
-          const allUsers = [...mockUsers, ...realUsers];
-          
-          // Sort by XP descending (highest first)
-          // Then by username for stability
-          allUsers.sort((a, b) => {
-             if (b.xp !== a.xp) return b.xp - a.xp;
-             return a.username.localeCompare(b.username);
-          });
-          
-          setUsers(allUsers);
+          // The API returns the full ranked list (demo seed users plus
+          // the current visitor), already sorted
+          setUsers(await res.json());
         } else {
             // Fallback to mocks on error
             setUsers([...mockUsers].sort((a, b) => b.xp - a.xp));
@@ -54,7 +44,6 @@ export const Leaderboard: React.FC = () => {
   
   const rankedUsers = users;
   const topThree = rankedUsers.slice(0, 3);
-  const restUsers = rankedUsers.slice(3);
 
   const handleRowClick = (userId: string) => {
     router.push(`/user/${userId}?from=leaderboard`);

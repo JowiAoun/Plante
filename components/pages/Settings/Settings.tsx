@@ -166,7 +166,7 @@ export const Settings: React.FC = () => {
       
       if (res.ok) {
         setVerificationSent(true);
-        setToast('Verification code sent!');
+        setToast('Verification code sent! (demo: any 6-digit code works)');
       } else {
         const data = await res.json();
         setToast(data.error || 'Failed to send code');

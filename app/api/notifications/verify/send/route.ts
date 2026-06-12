@@ -1,36 +1,20 @@
 /**
  * Phone Verification Send API Route
  * POST /api/notifications/verify/send
- * Send a verification code to the user's phone
+ *
+ * Demo mode: no SMS is sent. The phone number is stored as pending and
+ * any 6-digit code will be accepted by the confirm endpoint.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { ObjectId } from 'mongodb';
-import { createHash } from 'crypto';
 import { authOptions } from '@/lib/auth';
-import { getUsersCollection } from '@/lib/db/collections';
-import { sendVerificationSms } from '@/lib/twilio/sms';
-import { defaultSmsPreferences, type SmsPreferences } from '@/lib/db/types';
-
-/**
- * Generate a random 6-digit verification code
- */
-function generateVerificationCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-/**
- * Hash a verification code for storage
- */
-function hashCode(code: string): string {
-  return createHash('sha256').update(code).digest('hex');
-}
+import { setPhonePendingVerification } from '@/lib/demo-store';
 
 /**
  * POST /api/notifications/verify/send
- * Send verification code to user's phone
- * 
+ * "Send" a verification code to the user's phone
+ *
  * Body:
  * - phoneNumber: string (E.164 format)
  */
@@ -53,52 +37,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const users = await getUsersCollection();
-    const user = await users.findOne({ _id: new ObjectId(session.user.id) });
+    setPhonePendingVerification(session.user.id, phoneNumber);
 
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Generate verification code
-    const code = generateVerificationCode();
-    const hashedCode = hashCode(code);
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    // Get or create SMS preferences
-    const currentSettings = user.settings as { smsPreferences?: SmsPreferences } | undefined;
-    const currentPrefs = currentSettings?.smsPreferences || defaultSmsPreferences;
-
-    // Update user with verification code and phone number
-    await users.updateOne(
-      { _id: new ObjectId(session.user.id) },
-      {
-        $set: {
-          'settings.smsPreferences': {
-            ...currentPrefs,
-            phoneNumber,
-            phoneVerified: false,
-            verificationCode: hashedCode,
-            verificationExpires: expiresAt,
-          },
-          updatedAt: new Date(),
-        },
-      }
-    );
-
-    // Send verification SMS
-    const result = await sendVerificationSms(phoneNumber, code);
-
-    if (!result.success) {
-      return NextResponse.json(
-        { error: `Failed to send verification code: ${result.error}` },
-        { status: 500 }
-      );
-    }
 
     return NextResponse.json({
       success: true,
-      message: 'Verification code sent',
+      message: 'Verification code sent (demo: any 6-digit code works)',
       expiresAt: expiresAt.toISOString(),
     });
   } catch (error) {

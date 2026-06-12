@@ -8,8 +8,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import type { Notification } from '@/types';
 import { AchievementModal } from '@/components/AchievementModal';
-import { ActionButton } from '@/components/ActionButton';
-import { Toast, ToastContainer } from '@/components/Toast';
 import { PixelAvatar } from '@/components/PixelAvatar';
 import './NotificationBell.css';
 

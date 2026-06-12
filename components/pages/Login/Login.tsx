@@ -30,8 +30,8 @@ export const Login: React.FC = () => {
     }
   }, [session, status, router]);
 
-  const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl: '/profile-setup' });
+  const handleDemoSignIn = () => {
+    signIn('demo', { callbackUrl: '/profile-setup' });
   };
 
   // Show loading while checking session
@@ -75,14 +75,14 @@ export const Login: React.FC = () => {
         <h1 className="login__title">Plante</h1>
         <p className="login__subtitle">Welcome back, farmer!</p>
 
-        {/* Google Sign In */}
+        {/* Demo Sign In */}
         <button
           className="login__google-btn"
-          onClick={handleGoogleSignIn}
+          onClick={handleDemoSignIn}
           type="button"
         >
-          <span className="login__google-icon">🔑</span>
-          Continue with Google
+          <span className="login__google-icon">🌱</span>
+          Play the demo
         </button>
 
         {/* Divider */}

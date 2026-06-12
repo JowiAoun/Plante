@@ -4,13 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getUsersCollection } from '@/lib/db/collections';
-
-// Reserved usernames that cannot be used
-const RESERVED_USERNAMES = ['admin', 'plante', 'system', 'api', 'null', 'undefined', 'root', 'mod', 'moderator'];
-
-// Username validation regex: lowercase, numbers, underscores only, 3-20 chars
-const USERNAME_PATTERN = /^[a-z0-9_]{3,20}$/;
+import { checkUsername } from '@/lib/username';
 
 /**
  * GET /api/auth/check-username
@@ -28,40 +22,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Check format
-    if (!USERNAME_PATTERN.test(username)) {
-      return NextResponse.json({
-        available: false,
-        reason: 'invalid',
-        message: 'Username must be 3-20 characters, lowercase letters, numbers, and underscores only',
-      });
-    }
-
-    // Check reserved
-    if (RESERVED_USERNAMES.includes(username)) {
-      return NextResponse.json({
-        available: false,
-        reason: 'reserved',
-        message: 'This username is reserved',
-      });
-    }
-
-    // Check database
-    const users = await getUsersCollection();
-    const existing = await users.findOne(
-      { username },
-      { projection: { _id: 1 } }
-    );
-
-    if (existing) {
-      return NextResponse.json({
-        available: false,
-        reason: 'taken',
-        message: 'This username is already taken',
-      });
-    }
-
-    return NextResponse.json({ available: true });
+    return NextResponse.json(checkUsername(username));
   } catch (error) {
     console.error('Error checking username:', error);
     return NextResponse.json(

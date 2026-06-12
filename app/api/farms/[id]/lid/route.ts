@@ -1,11 +1,15 @@
 /**
  * Lid Control API Route
  * POST /api/farms/[id]/lid - Control the greenhouse lid
+ * GET /api/farms/[id]/lid - Get current lid status
+ *
+ * Demo mode: the lid is a simulated in-memory state per farm.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { getFarm, getLidState, setLid } from '@/lib/demo-store';
 
 export async function POST(
     request: NextRequest,
@@ -28,51 +32,21 @@ export async function POST(
             );
         }
 
-        // Get Pi API URL from environment (same as sensors/camera)
-        const piApiUrl = process.env.NEXT_PUBLIC_PI_API_URL;
-        if (!piApiUrl) {
+        const farm = getFarm(farmId, session.user.id);
+        if (!farm) {
             return NextResponse.json(
-                { error: 'Raspberry Pi API not configured' },
-                { status: 503 }
+                { error: 'Farm not found', success: false },
+                { status: 404 }
             );
         }
 
-        // Prepare headers
-        const headers: HeadersInit = {
-            'Content-Type': 'application/json',
-        };
-
-        // Add API key if configured
-        const apiKey = process.env.PI_API_KEY;
-        if (apiKey) {
-            headers['X-API-Key'] = apiKey;
-        }
-
-        // Call the hardware API
-        const response = await fetch(`${piApiUrl}/lid/control`, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({ action }),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            return NextResponse.json(
-                {
-                    error: errorData.detail || 'Failed to control lid',
-                    success: false
-                },
-                { status: response.status }
-            );
-        }
-
-        const data = await response.json();
+        const lid = setLid(farmId, action as 'open' | 'close' | 'toggle');
 
         return NextResponse.json({
             success: true,
-            isOpen: data.is_open,
-            angle: data.angle,
-            message: data.message,
+            isOpen: lid.isOpen,
+            angle: lid.angle,
+            message: `Lid ${lid.isOpen ? 'opened' : 'closed'} successfully`,
             farmId,
         });
     } catch (error) {
@@ -84,9 +58,6 @@ export async function POST(
     }
 }
 
-/**
- * GET /api/farms/[id]/lid - Get current lid status
- */
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -99,34 +70,19 @@ export async function GET(
     const { id: farmId } = await params;
 
     try {
-        const piApiUrl = process.env.NEXT_PUBLIC_PI_API_URL;
-        if (!piApiUrl) {
+        const farm = getFarm(farmId, session.user.id);
+        if (!farm) {
             return NextResponse.json(
-                { error: 'Raspberry Pi API not configured', isOpen: false },
-                { status: 503 }
+                { error: 'Farm not found', isOpen: false },
+                { status: 404 }
             );
         }
 
-        const headers: HeadersInit = {};
-        const apiKey = process.env.PI_API_KEY;
-        if (apiKey) {
-            headers['X-API-Key'] = apiKey;
-        }
-
-        const response = await fetch(`${piApiUrl}/lid/status`, { headers });
-
-        if (!response.ok) {
-            return NextResponse.json(
-                { error: 'Failed to get lid status', isOpen: false },
-                { status: response.status }
-            );
-        }
-
-        const data = await response.json();
+        const lid = getLidState(farmId);
 
         return NextResponse.json({
-            isOpen: data.is_open,
-            angle: data.angle,
+            isOpen: lid.isOpen,
+            angle: lid.angle,
             farmId,
         });
     } catch (error) {

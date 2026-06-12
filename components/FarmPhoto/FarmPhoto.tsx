@@ -32,9 +32,7 @@ export const FarmPhoto: React.FC<FarmPhotoProps> = ({
   const [timestamp, setTimestamp] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const piApiUrl = process.env.NEXT_PUBLIC_PI_API_URL || ''
-
-  // Capture photo from Pi
+  // Capture photo (demo: the API returns a bundled photo asset)
   const capturePhoto = useCallback(async () => {
     setState('capturing')
     setError(null)
@@ -45,18 +43,16 @@ export const FarmPhoto: React.FC<FarmPhotoProps> = ({
         method: 'POST',
       })
 
+      const data = await captureResponse.json()
+
       if (!captureResponse.ok) {
-        const data = await captureResponse.json()
         throw new Error(data.error || 'Failed to capture photo')
       }
 
-      // Build the photo URL from Pi API directly
-      const photoFileUrl = piApiUrl 
-        ? `${piApiUrl}/camera/latest/file?t=${Date.now()}`
-        : null
+      const photoFileUrl = data.photoUrl ? `${data.photoUrl}?t=${Date.now()}` : null
 
       if (!photoFileUrl) {
-        throw new Error('Pi API URL not configured')
+        throw new Error('No photo available')
       }
 
       // Preload the image
@@ -82,7 +78,7 @@ export const FarmPhoto: React.FC<FarmPhotoProps> = ({
       setError(err instanceof Error ? err.message : 'Capture failed')
       setState('error')
     }
-  }, [farmId, piApiUrl])
+  }, [farmId])
 
   // Auto-capture on mount
   useEffect(() => {

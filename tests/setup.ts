@@ -1,15 +1,11 @@
 /**
  * Test Suite Setup
- * 
+ *
  * Configures test environment with concise output.
  * Verbose logging only on errors.
  */
 
-import { config } from 'dotenv';
 import { beforeAll, afterAll } from 'vitest';
-
-// Load environment variables from .env file
-config();
 
 // Suppress console output for concise test runs
 const originalConsole = { ...console };
@@ -30,5 +26,4 @@ afterAll(() => {
 });
 
 // Export helpers for tests
-export const TEST_TIMEOUT = 10000; // 10 seconds for API calls
-export const PI_TIMEOUT = 5000; // 5 seconds for Pi hardware
+export const TEST_TIMEOUT = 10000; // 10 seconds

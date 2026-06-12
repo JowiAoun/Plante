@@ -1,22 +1,45 @@
 /**
- * NextAuth.js Configuration
- * Central authentication setup with Google provider and MongoDB adapter
+ * NextAuth.js Configuration (Demo Mode)
+ *
+ * Zero-env, self-contained demo auth: a credentials provider signs everyone
+ * in as the demo user, and the profile chosen during profile-setup lives
+ * entirely inside the JWT session cookie (no database). This keeps the app
+ * fully stateless, so it works on serverless deployments with no secrets.
  */
 
 import type { NextAuthOptions } from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
-import { MongoDBAdapter } from '@auth/mongodb-adapter';
-import clientPromise from './mongodb';
-import { env } from './env';
-import { getUsersCollection } from './db/collections';
-import { ObjectId } from 'mongodb';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import { DEMO_SESSION_SECRET, DEMO_USER_ID } from './demo-config';
+
+// next-auth v4 derives the request origin from x-forwarded headers when
+// VERCEL or AUTH_TRUST_HOST is set. VERCEL is a system env var that Vercel
+// injects automatically; this fallback covers deployments where system env
+// exposure is disabled.
+process.env.AUTH_TRUST_HOST ??= 'true';
+
+/** Session fields a client may persist into the token via update(). */
+const UPDATABLE_TOKEN_FIELDS = [
+  'username',
+  'displayName',
+  'avatarSeed',
+  'profileCompletedAt',
+  'chatAnalyticsConsent',
+] as const;
 
 export const authOptions: NextAuthOptions = {
-  adapter: MongoDBAdapter(clientPromise, { databaseName: 'plante' }) as NextAuthOptions['adapter'],
   providers: [
-    GoogleProvider({
-      clientId: env.GOOGLE_CLIENT_ID,
-      clientSecret: env.GOOGLE_CLIENT_SECRET,
+    CredentialsProvider({
+      id: 'demo',
+      name: 'Demo Account',
+      credentials: {},
+      async authorize() {
+        // Everyone gets the same demo identity; no password, no lookup.
+        return {
+          id: DEMO_USER_ID,
+          name: 'Demo Farmer',
+          email: 'demo@plante.example',
+        };
+      },
     }),
   ],
   pages: {
@@ -28,37 +51,27 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user, trigger, session }) {
-      // Initial sign in - fetch user data
+      // Initial sign in: fresh demo session with no profile yet, so the
+      // middleware routes the user through /profile-setup.
       if (user) {
         token.id = user.id;
-        const users = await getUsersCollection();
-        const dbUser = await users.findOne({ _id: new ObjectId(user.id) });
-
-        if (dbUser) {
-          token.username = dbUser.username;
-          token.displayName = dbUser.displayName;
-          token.avatarSeed = dbUser.avatarSeed;
-          token.level = dbUser.level ?? 1;
-          token.xp = dbUser.xp ?? 0;
-          token.profileCompletedAt = dbUser.profileCompletedAt;
-          token.chatAnalyticsConsent = dbUser.settings?.chatAnalyticsConsent;
-        }
+        token.level = 1;
+        token.xp = 0;
+        token.username = undefined;
+        token.displayName = undefined;
+        token.avatarSeed = undefined;
+        token.profileCompletedAt = undefined;
+        token.chatAnalyticsConsent = undefined;
       }
 
-      // Handle session update (e.g., after profile completion)
-      if (trigger === 'update') {
-        // Refresh user data from database
-        const users = await getUsersCollection();
-        const dbUser = await users.findOne({ _id: new ObjectId(token.id as string) });
-
-        if (dbUser) {
-          token.username = dbUser.username;
-          token.displayName = dbUser.displayName;
-          token.avatarSeed = dbUser.avatarSeed;
-          token.level = dbUser.level;
-          token.xp = dbUser.xp;
-          token.profileCompletedAt = dbUser.profileCompletedAt;
-          token.chatAnalyticsConsent = dbUser.settings?.chatAnalyticsConsent;
+      // Session update: merge whitelisted fields from the client payload.
+      // The JWT cookie itself is the only persistence layer in the demo.
+      if (trigger === 'update' && session && typeof session === 'object') {
+        const payload = session as Record<string, unknown>;
+        for (const field of UPDATABLE_TOKEN_FIELDS) {
+          if (payload[field] !== undefined) {
+            token[field] = payload[field] as never;
+          }
         }
       }
 
@@ -73,7 +86,7 @@ export const authOptions: NextAuthOptions = {
         session.user.avatarSeed = token.avatarSeed as string | undefined;
         session.user.level = token.level as number | undefined;
         session.user.xp = token.xp as number | undefined;
-        session.user.profileCompletedAt = token.profileCompletedAt as Date | undefined;
+        session.user.profileCompletedAt = token.profileCompletedAt as string | undefined;
         session.user.chatAnalyticsConsent = token.chatAnalyticsConsent as boolean | undefined;
       }
       return session;
@@ -90,30 +103,5 @@ export const authOptions: NextAuthOptions = {
       return baseUrl;
     },
   },
-  events: {
-    async createUser({ user }) {
-      // Initialize new user with default values
-      const users = await getUsersCollection();
-      await users.updateOne(
-        { _id: new ObjectId(user.id) },
-        {
-          $set: {
-            level: 1,
-            xp: 0,
-            settings: {
-              theme: 'default',
-              voiceEnabled: false,
-              notificationsEnabled: true,
-              pixelScale: '1x',
-            },
-            lastSeenAt: new Date(),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        }
-      );
-    },
-  },
-  secret: env.NEXTAUTH_SECRET,
+  secret: DEMO_SESSION_SECRET,
 };
-

@@ -1,14 +1,15 @@
 /**
  * Farm Action Notification API
- * Sends SMS notification when user triggers farm actions like "Water Now"
+ * POST /api/farms/[id]/notify - Acknowledge farm actions like "Water Now"
+ *
+ * Demo mode: no SMS is sent; the action is recorded in the demo store
+ * (watering count) and a friendly success is returned.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { sendNotificationSms } from '@/lib/twilio/sms';
-import { getFarmsCollection } from '@/lib/db/collections';
-import { ObjectId } from 'mongodb';
+import { getFarm, incrementWatering } from '@/lib/demo-store';
 
 export async function POST(
     request: NextRequest,
@@ -28,47 +29,20 @@ export async function POST(
             return NextResponse.json({ error: 'Action required' }, { status: 400 });
         }
 
-        // Get farm name for the notification
-        const farms = await getFarmsCollection();
-        const farm = await farms.findOne({ _id: new ObjectId(id) });
+        const farm = getFarm(id, session.user.id);
         const farmName = farm?.name || 'Your farm';
-
-        // Build notification message
-        const messages: Record<string, string> = {
-            water: `💧 Water reminder for ${farmName}! Time to check the soil moisture and water your plants.`,
-            hatch: `🚪 Hatch action requested for ${farmName}. Check your greenhouse ventilation.`,
-        };
-
-        const message = messages[action] || `🌱 Action "${action}" requested for ${farmName}.`;
 
         // Increment watering count if this is a water action
         if (action === 'water') {
-            await farms.updateOne(
-                { _id: new ObjectId(id) },
-                { $inc: { wateringCount: 1 } }
-            );
+            incrementWatering(id, session.user.id);
         }
 
-        // Send SMS notification
-        const result = await sendNotificationSms(
-            session.user.id,
-            'farm_action',
-            message,
-            id
-        );
+        console.log(`[FarmAction] Demo notification for ${farmName}: ${action}`);
 
-        if (result.success) {
-            return NextResponse.json({
-                success: true,
-                message: 'Notification sent!'
-            });
-        } else {
-            return NextResponse.json({
-                success: false,
-                message: result.error || 'SMS not sent',
-                reason: result.error
-            });
-        }
+        return NextResponse.json({
+            success: true,
+            message: 'Notification sent!',
+        });
     } catch (error) {
         console.error('[FarmAction] Error:', error);
         return NextResponse.json(

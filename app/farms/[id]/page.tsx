@@ -21,7 +21,7 @@ export default function FarmPage({ params }: FarmPageProps) {
   const { id } = use(params)
   const router = useRouter()
   const { user: currentUser } = useCurrentUser()
-  const { notifications, markAsRead } = useNotifications()
+  const { notifications } = useNotifications()
 
   const [farm, setFarm] = useState<Farm | null>(null)
   const [loading, setLoading] = useState(true)

@@ -5,14 +5,13 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { ObjectId } from 'mongodb';
 import { authOptions } from '@/lib/auth';
-import { getNotificationsCollection } from '@/lib/db/collections';
+import { listNotifications } from '@/lib/demo-store';
 
 /**
  * GET /api/notifications
  * Get notifications for the authenticated user
- * 
+ *
  * Query params:
  * - unreadOnly: 'true' to filter to unread only
  * - limit: number of notifications to return (default: 20)
@@ -28,25 +27,14 @@ export async function GET(request: NextRequest) {
     const unreadOnly = searchParams.get('unreadOnly') === 'true';
     const limit = parseInt(searchParams.get('limit') || '20', 10);
 
-    const notifications = await getNotificationsCollection();
-
-    const query: Record<string, unknown> = {
-      userId: new ObjectId(session.user.id),
-    };
-
-    if (unreadOnly) {
-      query.read = false;
-    }
-
-    const results = await notifications
-      .find(query)
-      .sort({ createdAt: -1 })
-      .limit(Math.min(limit, 100))
-      .toArray();
+    const results = listNotifications(session.user.id, {
+      unreadOnly,
+      limit: Math.min(limit, 100),
+    });
 
     return NextResponse.json(
       results.map((notif) => ({
-        id: notif._id.toString(),
+        id: notif.id,
         type: notif.type,
         severity: notif.severity,
         title: notif.title,
@@ -55,9 +43,7 @@ export async function GET(request: NextRequest) {
         read: notif.read,
         readAt: notif.readAt?.toISOString(),
         createdAt: notif.createdAt.toISOString(),
-        farmId: notif.farmId?.toString(),
-        achievementId: notif.achievementId,
-        fromUserId: notif.fromUserId?.toString(),
+        farmId: notif.farmId,
       }))
     );
   } catch (error) {

@@ -1,28 +1,19 @@
 /**
  * Phone Verification Confirm API Route
  * POST /api/notifications/verify/confirm
- * Confirm the verification code
+ *
+ * Demo mode: any well-formed 6-digit code verifies the phone.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { ObjectId } from 'mongodb';
-import { createHash } from 'crypto';
 import { authOptions } from '@/lib/auth';
-import { getUsersCollection } from '@/lib/db/collections';
-import type { SmsPreferences } from '@/lib/db/types';
-
-/**
- * Hash a verification code for comparison
- */
-function hashCode(code: string): string {
-  return createHash('sha256').update(code).digest('hex');
-}
+import { getSmsPreferences, setPhoneVerified } from '@/lib/demo-store';
 
 /**
  * POST /api/notifications/verify/confirm
  * Confirm the verification code
- * 
+ *
  * Body:
  * - code: string (6-digit code)
  */
@@ -44,55 +35,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const users = await getUsersCollection();
-    const user = await users.findOne({ _id: new ObjectId(session.user.id) });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Get SMS preferences
-    const settings = user.settings as { smsPreferences?: SmsPreferences } | undefined;
-    const smsPrefs = settings?.smsPreferences;
-
-    if (!smsPrefs?.verificationCode || !smsPrefs?.verificationExpires) {
+    const prefs = getSmsPreferences(session.user.id);
+    if (!prefs.phoneNumber) {
       return NextResponse.json(
         { error: 'No verification pending. Request a new code.' },
         { status: 400 }
       );
     }
 
-    // Check if code has expired
-    if (new Date() > new Date(smsPrefs.verificationExpires)) {
-      return NextResponse.json(
-        { error: 'Verification code has expired. Request a new code.' },
-        { status: 400 }
-      );
-    }
-
-    // Verify the code
-    const hashedInput = hashCode(code);
-    if (hashedInput !== smsPrefs.verificationCode) {
-      return NextResponse.json(
-        { error: 'Invalid verification code.' },
-        { status: 400 }
-      );
-    }
-
-    // Mark phone as verified
-    await users.updateOne(
-      { _id: new ObjectId(session.user.id) },
-      {
-        $set: {
-          'settings.smsPreferences.phoneVerified': true,
-          updatedAt: new Date(),
-        },
-        $unset: {
-          'settings.smsPreferences.verificationCode': '',
-          'settings.smsPreferences.verificationExpires': '',
-        },
-      }
-    );
+    setPhoneVerified(session.user.id);
 
     return NextResponse.json({
       success: true,

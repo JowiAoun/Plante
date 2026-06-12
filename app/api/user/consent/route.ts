@@ -1,13 +1,14 @@
 /**
  * User Consent API
  * POST /api/user/consent - Update user's chat analytics consent preference
+ *
+ * Demo mode: validates and acknowledges; the client persists the flag into
+ * the JWT session token via update() (there is no database).
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getUsersCollection } from '@/lib/db/collections';
-import { ObjectId } from 'mongodb';
 
 export async function POST(request: NextRequest) {
     try {
@@ -25,20 +26,6 @@ export async function POST(request: NextRequest) {
                 { status: 400 }
             );
         }
-
-        const users = await getUsersCollection();
-        await users.updateOne(
-            { _id: new ObjectId(session.user.id) },
-            {
-                $set: {
-                    'settings.chatAnalyticsConsent': chatAnalyticsConsent,
-                    'settings.chatAnalyticsConsentAt': new Date(),
-                    updatedAt: new Date(),
-                },
-            }
-        );
-
-        console.log(`[Consent] User ${session.user.id} set chatAnalyticsConsent to ${chatAnalyticsConsent}`);
 
         return NextResponse.json({
             success: true,

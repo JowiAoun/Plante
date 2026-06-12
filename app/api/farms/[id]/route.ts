@@ -7,9 +7,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { ObjectId } from 'mongodb';
 import { authOptions } from '@/lib/auth';
-import { getFarmsCollection } from '@/lib/db/collections';
+import { getFarm, updateFarm, deleteFarm } from '@/lib/demo-store';
+import { mapFarmDetail } from '@/lib/farm-serializers';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -27,62 +27,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     const { id } = await params;
-
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json({ error: 'Invalid farm ID' }, { status: 400 });
-    }
-
-    const farms = await getFarmsCollection();
-    const farm = await farms.findOne({
-      _id: new ObjectId(id),
-      ownerId: new ObjectId(session.user.id),
-    });
+    const farm = getFarm(id, session.user.id);
 
     if (!farm) {
       return NextResponse.json({ error: 'Farm not found' }, { status: 404 });
     }
 
-    return NextResponse.json({
-      id: farm._id.toString(),
-      name: farm.name,
-      species: farm.species,
-      status: farm.status,
-      thumbnailUrl: farm.thumbnailUrl,
-      sensors: {
-        temp: {
-          value: farm.sensors.temperature.value,
-          unit: farm.sensors.temperature.unit === 'celsius' ? '°C' : '°F',
-          trend: farm.sensors.temperature.trend,
-          updatedAt: farm.sensors.temperature.updatedAt.toISOString(),
-        },
-        humidity: {
-          value: farm.sensors.humidity.value,
-          unit: '%',
-          trend: farm.sensors.humidity.trend,
-          updatedAt: farm.sensors.humidity.updatedAt.toISOString(),
-        },
-        soil: {
-          value: farm.sensors.soilMoisture.value,
-          unit: '%',
-          trend: farm.sensors.soilMoisture.trend,
-          updatedAt: farm.sensors.soilMoisture.updatedAt.toISOString(),
-        },
-        light: farm.sensors.light
-          ? {
-            value: farm.sensors.light.value,
-            unit: 'lux',
-            trend: farm.sensors.light.trend,
-            updatedAt: farm.sensors.light.updatedAt.toISOString(),
-          }
-          : undefined,
-      },
-      thresholds: farm.thresholds,
-      deviceId: farm.deviceId,
-      lastSeen: farm.lastSeen.toISOString(),
-      wateringCount: farm.wateringCount || 0,
-      createdAt: farm.createdAt.toISOString(),
-      updatedAt: farm.updatedAt.toISOString(),
-    });
+    return NextResponse.json(mapFarmDetail(farm));
   } catch (error) {
     console.error('Error fetching farm:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -101,39 +52,16 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     const { id } = await params;
-
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json({ error: 'Invalid farm ID' }, { status: 400 });
-    }
-
     const body = await request.json();
-    const allowedFields = ['name', 'species', 'thumbnailUrl', 'thresholds', 'deviceId'];
-    const updateFields: Record<string, unknown> = {};
 
-    for (const field of allowedFields) {
-      if (body[field] !== undefined) {
-        updateFields[field] = body[field];
-      }
-    }
-
-    updateFields.updatedAt = new Date();
-
-    const farms = await getFarmsCollection();
-    const result = await farms.findOneAndUpdate(
-      {
-        _id: new ObjectId(id),
-        ownerId: new ObjectId(session.user.id),
-      },
-      { $set: updateFields },
-      { returnDocument: 'after' }
-    );
+    const result = updateFarm(id, session.user.id, body);
 
     if (!result) {
       return NextResponse.json({ error: 'Farm not found' }, { status: 404 });
     }
 
     return NextResponse.json({
-      id: result._id.toString(),
+      id: result.id,
       name: result.name,
       species: result.species,
       status: result.status,
@@ -157,18 +85,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 
     const { id } = await params;
+    const deleted = deleteFarm(id, session.user.id);
 
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json({ error: 'Invalid farm ID' }, { status: 400 });
-    }
-
-    const farms = await getFarmsCollection();
-    const result = await farms.deleteOne({
-      _id: new ObjectId(id),
-      ownerId: new ObjectId(session.user.id),
-    });
-
-    if (result.deletedCount === 0) {
+    if (!deleted) {
       return NextResponse.json({ error: 'Farm not found' }, { status: 404 });
     }
 

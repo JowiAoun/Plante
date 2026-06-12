@@ -1,14 +1,19 @@
 /**
  * Notification Preferences API Route
  * GET/PUT /api/notifications/preferences
+ *
+ * Demo mode: preferences live in the in-memory demo store; no SMS is
+ * ever sent.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { ObjectId } from 'mongodb';
 import { authOptions } from '@/lib/auth';
-import { getUsersCollection } from '@/lib/db/collections';
-import { defaultSmsPreferences, type SmsPreferences } from '@/lib/db/types';
+import {
+  getSmsPreferences,
+  updateSmsPreferences,
+  type SmsPreferences,
+} from '@/lib/demo-store';
 
 /**
  * GET /api/notifications/preferences
@@ -21,16 +26,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const users = await getUsersCollection();
-    const user = await users.findOne({ _id: new ObjectId(session.user.id) });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Return SMS preferences or defaults
-    const settings = user.settings as { smsPreferences?: SmsPreferences } | undefined;
-    const smsPreferences = settings?.smsPreferences || defaultSmsPreferences;
+    const smsPreferences = getSmsPreferences(session.user.id);
 
     return NextResponse.json({
       smsEnabled: smsPreferences.enabled,
@@ -58,16 +54,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const users = await getUsersCollection();
-    
-    // Get current preferences
-    const user = await users.findOne({ _id: new ObjectId(session.user.id) });
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    const currentSettings = user.settings as { smsPreferences?: SmsPreferences } | undefined;
-    const currentPrefs = currentSettings?.smsPreferences || defaultSmsPreferences;
+    const currentPrefs = getSmsPreferences(session.user.id);
 
     // Build update object
     const updates: Partial<SmsPreferences> = {};
@@ -93,42 +80,18 @@ export async function PUT(request: NextRequest) {
     }
 
     if (body.categories && typeof body.categories === 'object') {
-      updates.categories = {
-        ...currentPrefs.categories,
-        ...body.categories,
-      };
+      updates.categories = body.categories;
     }
 
     if (body.quietHours && typeof body.quietHours === 'object') {
-      updates.quietHours = {
-        ...currentPrefs.quietHours,
-        ...body.quietHours,
-      };
+      updates.quietHours = body.quietHours;
     }
 
     if (body.thresholds && typeof body.thresholds === 'object') {
-      updates.thresholds = {
-        ...currentPrefs.thresholds,
-        ...body.thresholds,
-      };
+      updates.thresholds = body.thresholds;
     }
 
-    // Merge with current preferences
-    const newPrefs: SmsPreferences = {
-      ...currentPrefs,
-      ...updates,
-    };
-
-    // Update user document
-    await users.updateOne(
-      { _id: new ObjectId(session.user.id) },
-      {
-        $set: {
-          'settings.smsPreferences': newPrefs,
-          updatedAt: new Date(),
-        },
-      }
-    );
+    const newPrefs = updateSmsPreferences(session.user.id, updates);
 
     return NextResponse.json({
       success: true,

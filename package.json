@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "test": "vitest run --config tests/vitest.config.ts",
     "test:watch": "vitest --config tests/vitest.config.ts",
     "test:verbose": "vitest run --config tests/vitest.config.ts",
@@ -15,20 +15,14 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@auth/mongodb-adapter": "^3.11.1",
     "@dicebear/collection": "^9.3.0",
     "@dicebear/core": "^9.3.0",
-    "@google/generative-ai": "^0.24.1",
-    "@sentry/nextjs": "^10.34.0",
-    "elevenlabs": "^1.59.0",
     "framer-motion": "^12.26.2",
-    "mongodb": "^6.12.0",
     "nes.css": "^2.2.1",
     "next": "^16.1.2",
     "next-auth": "^4.24.13",
     "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "twilio": "^5.11.2"
+    "react-dom": "^19.2.3"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^5.0.0",

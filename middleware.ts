@@ -5,6 +5,7 @@
 
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
+import { DEMO_SESSION_SECRET } from './lib/demo-config';
 
 export default withAuth(
   function middleware(req) {
@@ -40,6 +41,7 @@ export default withAuth(
     callbacks: {
       authorized: ({ token }) => !!token,
     },
+    secret: DEMO_SESSION_SECRET,
   }
 );
 

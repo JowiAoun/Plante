@@ -1,14 +1,14 @@
 /**
  * Farm Live Sensors API Route
- * GET /api/farms/[id]/sensors/live - Get live sensor readings from Pi
+ * GET /api/farms/[id]/sensors/live - Get current sensor readings
+ *
+ * Demo mode: readings come straight from the demo store.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { ObjectId } from 'mongodb';
 import { authOptions } from '@/lib/auth';
-import { getFarmsCollection } from '@/lib/db/collections';
-import { getPiClient, PiApiError } from '@/lib/pi-client';
+import { getFarm } from '@/lib/demo-store';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -16,7 +16,7 @@ interface RouteParams {
 
 /**
  * GET /api/farms/[id]/sensors/live
- * Get live sensor readings directly from Pi (without updating database)
+ * Get the farm's current sensor readings
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
@@ -26,115 +26,38 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     const { id } = await params;
-
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json({ error: 'Invalid farm ID' }, { status: 400 });
-    }
-
-    // Verify farm ownership
-    const farms = await getFarmsCollection();
-    const farm = await farms.findOne({
-      _id: new ObjectId(id),
-      ownerId: new ObjectId(session.user.id),
-    });
+    const farm = getFarm(id, session.user.id);
 
     if (!farm) {
       return NextResponse.json({ error: 'Farm not found' }, { status: 404 });
     }
 
-    // Check if Pi API is configured
-    const piClient = getPiClient();
-
-    if (!piClient.isConfigured()) {
-      // Return cached data from database if Pi not configured
-      return NextResponse.json({
-        source: 'cache',
-        timestamp: farm.lastSeen.toISOString(),
-        sensors: {
-          temperature: farm.sensors.temperature
-            ? {
-                value: farm.sensors.temperature.value,
-                unit: farm.sensors.temperature.unit,
-              }
-            : null,
-          humidity: farm.sensors.humidity
-            ? {
-                value: farm.sensors.humidity.value,
-                unit: farm.sensors.humidity.unit,
-              }
-            : null,
-          light: farm.sensors.light
-            ? {
-                value: farm.sensors.light.value,
-                unit: farm.sensors.light.unit,
-              }
-            : null,
-          soil_moisture: farm.sensors.soilMoisture
-            ? {
-                value: farm.sensors.soilMoisture.value,
-                unit: farm.sensors.soilMoisture.unit,
-              }
-            : null,
+    return NextResponse.json({
+      source: 'demo',
+      timestamp: farm.lastSeen.toISOString(),
+      sensors: {
+        temperature: {
+          value: farm.sensors.temperature.value,
+          unit: farm.sensors.temperature.unit,
         },
-        status: 'cached',
-        message: 'Pi API not configured, returning cached data',
-      });
-    }
-
-    // Fetch live data from Pi
-    try {
-      const piData = await piClient.getSensors(true); // Use cache for faster response
-
-      return NextResponse.json({
-        source: 'live',
-        timestamp: piData.timestamp,
-        sensors: {
-          temperature: piData.temperature,
-          humidity: piData.humidity,
-          light: piData.light,
-          soil_moisture: piData.soil_moisture,
+        humidity: {
+          value: farm.sensors.humidity.value,
+          unit: farm.sensors.humidity.unit,
         },
-        status: piData.status,
-        errors: piData.errors,
-      });
-    } catch (error) {
-      if (error instanceof PiApiError) {
-        // Return cached data on Pi error
-        return NextResponse.json({
-          source: 'cache',
-          timestamp: farm.lastSeen.toISOString(),
-          sensors: {
-            temperature: farm.sensors.temperature
-              ? {
-                  value: farm.sensors.temperature.value,
-                  unit: farm.sensors.temperature.unit,
-                }
-              : null,
-            humidity: farm.sensors.humidity
-              ? {
-                  value: farm.sensors.humidity.value,
-                  unit: farm.sensors.humidity.unit,
-                }
-              : null,
-            light: farm.sensors.light
-              ? {
-                  value: farm.sensors.light.value,
-                  unit: farm.sensors.light.unit,
-                }
-              : null,
-            soil_moisture: farm.sensors.soilMoisture
-              ? {
-                  value: farm.sensors.soilMoisture.value,
-                  unit: farm.sensors.soilMoisture.unit,
-                }
-              : null,
-          },
-          status: 'error',
-          message: `Pi API unavailable: ${error.message}`,
-        });
-      }
-      throw error;
-    }
+        light: farm.sensors.light
+          ? {
+              value: farm.sensors.light.value,
+              unit: farm.sensors.light.unit,
+            }
+          : null,
+        soil_moisture: {
+          value: farm.sensors.soilMoisture.value,
+          unit: farm.sensors.soilMoisture.unit,
+        },
+      },
+      status: 'ok',
+      errors: [],
+    });
   } catch (error) {
     console.error('Error fetching live sensors:', error);
     return NextResponse.json(

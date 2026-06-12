@@ -44,7 +44,7 @@ export default function UserPage({ params }: UserPageProps) {
         user={currentUser}
         notifications={mockNotifications}
         currentPage="profile"
-        onNavigate={handleNavigate as any}
+        onNavigate={handleNavigate}
       >
         <div style={{ textAlign: 'center', padding: '40px 20px' }}>
           <h1 style={{ 
@@ -74,7 +74,7 @@ export default function UserPage({ params }: UserPageProps) {
       user={currentUser}
       notifications={mockNotifications}
       currentPage="profile" // Highlight profile or nothing
-      onNavigate={handleNavigate as any}
+      onNavigate={handleNavigate}
     >
       <div className="user-profile-page" style={{ padding: '20px' }}>
          <div style={{ maxWidth: '600px', margin: '0 auto 20px auto' }}>

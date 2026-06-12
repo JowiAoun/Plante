@@ -1,19 +1,16 @@
 /**
  * Complete Profile API
  * POST /api/auth/complete-profile
+ *
+ * Demo mode: validates the chosen profile and returns it. Persistence
+ * happens client-side via the session update() call, which writes the
+ * profile into the JWT cookie (there is no database).
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { ObjectId } from 'mongodb';
 import { authOptions } from '@/lib/auth';
-import { getUsersCollection } from '@/lib/db/collections';
-
-// Reserved usernames
-const RESERVED_USERNAMES = ['admin', 'plante', 'system', 'api', 'null', 'undefined', 'root', 'mod', 'moderator'];
-
-// Username validation
-const USERNAME_PATTERN = /^[a-z0-9_]{3,20}$/;
+import { checkUsername } from '@/lib/username';
 
 /**
  * POST /api/auth/complete-profile
@@ -29,18 +26,20 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { username, displayName, avatarSeed } = body;
 
-    // Validate username
+    // Validate username (format, reserved list, taken seed names)
     const normalizedUsername = username?.toLowerCase().trim();
-    if (!normalizedUsername || !USERNAME_PATTERN.test(normalizedUsername)) {
+    const check = checkUsername(normalizedUsername);
+    if (!check.available) {
+      if (check.reason === 'taken') {
+        return NextResponse.json(
+          { error: 'Username is already taken' },
+          { status: 409 }
+        );
+      }
       return NextResponse.json(
-        { error: 'Invalid username format' },
-        { status: 400 }
-      );
-    }
-
-    if (RESERVED_USERNAMES.includes(normalizedUsername)) {
-      return NextResponse.json(
-        { error: 'Username is reserved' },
+        {
+          error: check.reason === 'reserved' ? 'Username is reserved' : 'Invalid username format',
+        },
         { status: 400 }
       );
     }
@@ -63,76 +62,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const users = await getUsersCollection();
-
-    // Log the user ID for debugging
-    console.log('Complete profile - User ID:', session.user.id);
-
-    // Validate ObjectId format
-    if (!ObjectId.isValid(session.user.id)) {
-      console.error('Invalid ObjectId format:', session.user.id);
-      return NextResponse.json(
-        { error: 'Invalid user ID format' },
-        { status: 400 }
-      );
-    }
-
-    // Check username availability (except for current user)
-    const existingUser = await users.findOne({
-      username: normalizedUsername,
-      _id: { $ne: new ObjectId(session.user.id) },
-    });
-
-    if (existingUser) {
-      return NextResponse.json(
-        { error: 'Username is already taken' },
-        { status: 409 }
-      );
-    }
-
-    // First, verify the user exists
-    const currentUser = await users.findOne({ _id: new ObjectId(session.user.id) });
-    if (!currentUser) {
-      console.error('User not found in database:', session.user.id);
-      return NextResponse.json(
-        { error: 'User not found in database. Please sign out and sign in again.' },
-        { status: 404 }
-      );
-    }
-
-    // Update user profile
-    const now = new Date();
-    const result = await users.findOneAndUpdate(
-      { _id: new ObjectId(session.user.id) },
-      {
-        $set: {
-          username: normalizedUsername,
-          displayName: trimmedDisplayName,
-          avatarSeed: trimmedAvatarSeed,
-          profileCompletedAt: now,
-          updatedAt: now,
-        },
-      },
-      { returnDocument: 'after' }
-    );
-
-    if (!result) {
-      return NextResponse.json(
-        { error: 'Failed to update profile' },
-        { status: 500 }
-      );
-    }
-
     return NextResponse.json({
       success: true,
       user: {
-        id: result._id.toString(),
-        username: result.username,
-        displayName: result.displayName,
-        avatarSeed: result.avatarSeed,
-        level: result.level,
-        xp: result.xp,
-        profileCompletedAt: result.profileCompletedAt,
+        id: session.user.id,
+        username: normalizedUsername,
+        displayName: trimmedDisplayName,
+        avatarSeed: trimmedAvatarSeed,
+        level: session.user.level ?? 1,
+        xp: session.user.xp ?? 0,
+        profileCompletedAt: new Date(),
       },
     });
   } catch (error) {

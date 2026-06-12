@@ -17,7 +17,7 @@ declare module 'next-auth' {
       avatarSeed?: string;
       level?: number;
       xp?: number;
-      profileCompletedAt?: Date;
+      profileCompletedAt?: Date | string;
       chatAnalyticsConsent?: boolean;
     };
   }
@@ -28,7 +28,7 @@ declare module 'next-auth' {
     avatarSeed?: string;
     level?: number;
     xp?: number;
-    profileCompletedAt?: Date;
+    profileCompletedAt?: Date | string;
     chatAnalyticsConsent?: boolean;
   }
 }
@@ -41,7 +41,7 @@ declare module 'next-auth/jwt' {
     avatarSeed?: string;
     level?: number;
     xp?: number;
-    profileCompletedAt?: Date;
+    profileCompletedAt?: Date | string;
     chatAnalyticsConsent?: boolean;
   }
 }

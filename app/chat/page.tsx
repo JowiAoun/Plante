@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Chat } from '@/components/pages/Chat';
 import { AppShell } from '@/components/AppShell';
 import { PrivacyConsentModal } from '@/components/PrivacyConsentModal';
@@ -15,6 +16,7 @@ import { mockNotifications } from '@/mocks/data';
 
 export default function ChatPage() {
     const { user, chatAnalyticsConsent } = useCurrentUser();
+    const { update: updateSession } = useSession();
     const router = useRouter();
     const [showConsentModal, setShowConsentModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,12 +40,14 @@ export default function ChatPage() {
         setShowConsentModal(false);
 
         try {
-            // Save consent to database - will never show popup again
             await fetch('/api/user/consent', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ chatAnalyticsConsent: true }),
             });
+            // Persist consent into the JWT session token so the popup
+            // never shows again (the demo has no database)
+            await updateSession({ chatAnalyticsConsent: true });
         } catch (error) {
             console.error('Failed to save consent:', error);
         }

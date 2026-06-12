@@ -23,7 +23,7 @@ export interface AppShellProps {
   theme?: 'default' | 'spring' | 'night' | 'neon';
   // currentPage and onNavigate are deprecated in favor of App Router
   currentPage?: string; // Kept for backward compat if needed, but unused
-  onNavigate?: (page: any) => void;
+  onNavigate?: (page: string) => void;
 }
 
 /**

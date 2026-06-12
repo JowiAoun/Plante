@@ -65,7 +65,7 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
 
     const markAsRead = useCallback(async (id: string) => {
         try {
-            const response = await fetch(`/api/notifications/${id}`, {
+            const response = await fetch(`/api/notifications/${id}/read`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ read: true }),

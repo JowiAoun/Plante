@@ -15,8 +15,8 @@ import './Register.css';
  * Register - New user registration page
  */
 export const Register: React.FC = () => {
-  const handleGoogleSignUp = () => {
-    signIn('google', { callbackUrl: '/profile-setup' });
+  const handleDemoSignUp = () => {
+    signIn('demo', { callbackUrl: '/profile-setup' });
   };
 
   return (
@@ -42,14 +42,14 @@ export const Register: React.FC = () => {
         <h1 className="register__title">Join Plante</h1>
         <p className="register__subtitle">Start your farming adventure!</p>
 
-        {/* Google Sign Up */}
+        {/* Demo Sign Up */}
         <button
           className="register__google-btn"
-          onClick={handleGoogleSignUp}
+          onClick={handleDemoSignUp}
           type="button"
         >
-          <span className="register__google-icon">🔑</span>
-          Sign up with Google
+          <span className="register__google-icon">🌱</span>
+          Start the demo
         </button>
 
         {/* Features */}

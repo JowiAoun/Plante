@@ -7,7 +7,6 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { PixelAvatar } from '@/components/PixelAvatar';
 import { PixelInput } from '@/components/PixelInput';
@@ -31,7 +30,6 @@ const generateRandomSeed = (): string => {
  */
 export const ProfileSetup: React.FC = () => {
   const { data: session, update: updateSession } = useSession();
-  const router = useRouter();
   
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -138,8 +136,14 @@ export const ProfileSetup: React.FC = () => {
         return;
       }
 
-      // Update session to refresh JWT token with new profile data
-      await updateSession({ trigger: 'profile-complete' });
+      // Persist the profile into the JWT session token (the demo has no
+      // database; the cookie itself carries the profile)
+      await updateSession({
+        username,
+        displayName: displayName || username,
+        avatarSeed,
+        profileCompletedAt: new Date().toISOString(),
+      });
 
       // Hard redirect to dashboard to ensure fresh session
       window.location.href = '/dashboard';

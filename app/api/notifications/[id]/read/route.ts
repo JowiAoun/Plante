@@ -1,23 +1,18 @@
 /**
  * Mark Notification as Read API Route
- * POST /api/notifications/[id]/read - Mark notification as read
+ * POST/PATCH /api/notifications/[id]/read - Mark notification as read
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { ObjectId } from 'mongodb';
 import { authOptions } from '@/lib/auth';
-import { getNotificationsCollection } from '@/lib/db/collections';
+import { markNotificationRead } from '@/lib/demo-store';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-/**
- * POST /api/notifications/[id]/read
- * Mark a notification as read
- */
-export async function POST(request: NextRequest, { params }: RouteParams) {
+async function handleMarkRead(request: NextRequest, { params }: RouteParams) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -25,26 +20,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const { id } = await params;
+    const marked = markNotificationRead(session.user.id, id);
 
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json({ error: 'Invalid notification ID' }, { status: 400 });
-    }
-
-    const notifications = await getNotificationsCollection();
-    const result = await notifications.updateOne(
-      {
-        _id: new ObjectId(id),
-        userId: new ObjectId(session.user.id),
-      },
-      {
-        $set: {
-          read: true,
-          readAt: new Date(),
-        },
-      }
-    );
-
-    if (result.matchedCount === 0) {
+    if (!marked) {
       return NextResponse.json({ error: 'Notification not found' }, { status: 404 });
     }
 
@@ -53,4 +31,20 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     console.error('Error marking notification as read:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+}
+
+/**
+ * POST /api/notifications/[id]/read
+ * Mark a notification as read
+ */
+export async function POST(request: NextRequest, context: RouteParams) {
+  return handleMarkRead(request, context);
+}
+
+/**
+ * PATCH /api/notifications/[id]/read
+ * Same as POST (the notifications hook uses PATCH)
+ */
+export async function PATCH(request: NextRequest, context: RouteParams) {
+  return handleMarkRead(request, context);
 }
